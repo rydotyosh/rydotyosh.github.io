@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+  <meta name="author" content="@rydotyosh / Ryogo Yoshimura" />
+  <title>Boost.odeintで遊ぼう</title>
+  <style type="text/css">
+    code {
+      white-space: pre;
+      font-family: Monaco, monospace;
+      font-size: 80%;
+    }
+    pre.sourceCode {
+      padding: 2px 10px 2px 10px;
+      border-style: solid;
+      border-width: 1px;
+      border-color: gray;
+      margin: 5px 50px 5px 50px;
+      font-size: 90%;
+      line-height: 110%;
+    }
+  </style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+<style>
+  html { background-color: black; }
+  body { background-color: white; border-radius: 12px}
+  /* A section is a slide. It's size is 800x600, and this will never change */
+  section {
+      font-family: sans-serif;
+      font-size: 22pt;
+      line-height: 130%;
+    }
+  address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 3px 50px 3px 50px; }
+  h1, h2, h3 {
+    text-align: center;
+    margin: 10pt 10pt 4pt 10pt;
+  }
+  ul, ol {
+    margin: 3px 10px 3px 20px;
+  }
+  section.titleslide h1 { margin-top: 200px; }
+  h1.title { margin-top: 150px; }
+  h1 { font-size: 150%; }
+  h2 { font-size: 120%; }
+  h3 { font-size: 100%; }
+  q { quotes: "“" "”" "‘" "’"; }
+  blockquote { font-style: italic }
+  /* Figures are displayed full-page, with the caption on
+     top of the image/video */
+  figure {
+    background-color: black;
+  }
+  figcaption {
+    margin: 70px;
+  }
+  footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 40px;
+    text-align: right;
+    background-color: #F3F4F8;
+    border-top: 1px solid #CCC;
+  }
+
+  /* Transition effect */
+  /* Feel free to change the transition effect for original
+     animations. See here:
+     https://developer.mozilla.org/en/CSS/CSS_transitions
+     How to use CSS3 Transitions: */
+  section {
+      -moz-transition: left 200ms linear 0s;
+      -webkit-transition: left 200ms linear 0s;
+      -ms-transition: left 200ms linear 0s;
+      transition: left 200ms linear 0s;
+  }
+
+  /* Before */
+  section { left: -150%; }
+  /* Now */
+  section[aria-selected] { left: 0; }
+  /* After */
+  section[aria-selected] ~ section { left: +150%; }
+
+  /* Incremental elements */
+
+  /* By default, visible */
+  .incremental > * { opacity: 1; }
+
+  /* The current item */
+  .incremental > *[aria-selected] { color: #224499; opacity: 1; }
+
+  /* The items to-be-selected */
+  .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+
+  .center_img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cite {
+    font-size: 50%;
+    text-align: right;
+    text-decoration: underline;
+  }
+
+  table {
+    margin-left: auto;
+    margin-right: auto;    
+  }
+  th, td {
+    padding: 0px 20px 0px 20px;
+  }
+
+</style>
+<!-- MathJax customize -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": {
+      styles: {
+        ".MathJax_Display": {
+          margin:       "0em 0em"
+        }
+      }
+    }
+  });
+</script>
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<section class="title">
+  <h1 class="title">Boost.odeintで遊ぼう</h1>
+  <h2 class="author"><span class="citation" data-cites="rydotyosh">@rydotyosh</span> / Ryogo Yoshimura</h2>
+  <h3 class="date">2015.05.30</h3>
+</section>
+<section id="自己紹介" class="slide level1">
+<h1>自己紹介</h1>
+<ul>
+<li>なまえ<br /><span class="citation" data-cites="rydotyosh">@rydotyosh</span> <img src="resource/castela2.png" /> / Ryogo Yoshimura</li>
+<li>しゅみ<br />幾何学, プログラミング</li>
+<li>おしごと<br />CAD/CAM やさん</li>
+</ul>
+</section>
+<section id="cadcam" class="slide level1">
+<h1>CAD/CAM</h1>
+<ul>
+<li><ruby>CAD<rt>computer aided design</rt></ruby>: 機械部品とかをモデリングする</li>
+<li><ruby>CAM<rt>computer aided machining</rt></ruby>: 工作機械の動作方法を計算する</li>
+<li>曲面とか曲線とか出てくる</li>
+</ul>
+<p><img src="resource/koukouritu1_s.jpg" width="48%" /> <img src="resource/v3_3d_touara_1.gif" width="48%" /></p>
+<div class="cite">
+<p>https://www.cgsys.co.jp/g/products/CAM-TOOL/3dcam_cl.htm</p>
+</div>
+</section>
+<section id="曲面曲線" class="slide level1">
+<h1>曲面/曲線</h1>
+<ul>
+<li>微分とかよく出てくる</li>
+<li>接線, 法線, 曲率など</li>
+</ul>
+<p><img src="resource/640px-Tangentialvektor.svg.png" width="48%" /> <img src="resource/Surface_normal.png" width="48%" /></p>
+<div class="cite">
+<p>http://en.wikipedia.org/wiki/Tangent_space<br />http://en.wikipedia.org/wiki/Normal_(geometry)</p>
+</div>
+</section>
+<section id="曲面曲線-1" class="slide level1">
+<h1>曲面/曲線</h1>
+<ul>
+<li>微分方程式も出てくる</li>
+<li>交線など</li>
+</ul>
+<p><img class="center_img" src="resource/210px-Cylindric_section.svg.png" width="30%" /></p>
+<div class="cite">
+<p>http://en.wikipedia.org/wiki/Cross_section_(geometry)</p>
+</div>
+</section>
+<section id="boost.odeint" class="slide level1">
+<h1>Boost.odeint</h1>
+<ul>
+<li>おでいんと<sup>[要出典]</sup></li>
+<li><ruby>常微分方程式<rt>ordinary differential equation</rt></ruby>の<br /><ruby>初期値問題<rt>initial value problem</rt></ruby>の<br /><ruby>数値近似<rt>numerical approximation</rt></ruby>を求めるライブラリ</li>
+<li>普通の<ruby>積分<rt>integral</rt></ruby>の数値近似も OK</li>
+<li>Boost 1.53.0 から</li>
+</ul>
+<p><img class="center_img" src="resource/logo_odeint.jpg" width="30%" /></p>
+<div class="cite">
+<p>http://www.boost.org/doc/libs/release/libs/numeric/odeint/doc/html/index.html</p>
+</div>
+</section>
+<section id="boost.odeint-1" class="slide level1">
+<h1>Boost.odeint</h1>
+<ul>
+<li>テンプレート力高い</li>
+<li>アダプタ<br />std.vector, array, complex,<br />boost.ublas, range, fusion, multiprecision, unit,<br />Eigen, Thrust(CUDA, OpenMP), VexCL(OpenCL)</li>
+<li>コンセプト<br />各種の解法をほぼ同じインタフェイスで使える<br />原理的に互換性のない解法もあるが</li>
+</ul>
+</section>
+<section id="微分" class="slide level1">
+<h1>微分</h1>
+<ul>
+<li>傾き <span class="math">\(\{x(t+\Delta t) - x(t)\}/\Delta t\)</span></li>
+<li>接線方向 <span class="math">\(x^\prime(t)\)</span></li>
+<li>次の時点に行くときにどう進むか</li>
+</ul>
+<p><img src="resource/800px-Secant-calculus.svg.png" width="48%" /> <img src="resource/800px-Tangent-calculus.svg.png" width="48%" /></p>
+<div class="cite">
+<p>http://en.wikipedia.org/wiki/Derivative</p>
+</div>
+</section>
+<section id="常微分方程式の初期値問題" class="slide level1">
+<h1>常微分方程式の初期値問題</h1>
+<ul>
+<li>最初の状態が分かっている</li>
+<li>次の状態が予測できる</li>
+<li>好きな時点での状態が分かるようにしたい</li>
+</ul>
+<p><img src="resource/Hubble2005-01-barred-spiral-galaxy-NGC1300.jpg" width="48%" /> <img src="resource/Chesapeake_Waterbird_Food_Web.jpg" width="48%" /></p>
+<div class="cite">
+<p>http://en.wikipedia.org/wiki/Galaxy<br />http://en.wikipedia.org/wiki/Food_chain</p>
+</div>
+</section>
+<section id="常微分方程式の初期値問題-1" class="slide level1">
+<h1>常微分方程式の初期値問題</h1>
+<ul>
+<li>パラメータ, 時刻 <span class="math">\(t\)</span></li>
+<li>未知関数, 状態 <span class="math">\(x(t)\)</span></li>
+<li>最初の状態 <span class="math">\(x(0)\)</span> が分かっている<br /><span class="math">\[
+x(0) = x_0
+\]</span></li>
+<li>次の状態が予測できる: <span class="math">\(f\)</span> が分かっている<br /><span class="math">\[
+x^\prime(t) = f(x, t)
+\]</span></li>
+<li>好きな時点での状態: <span class="math">\(x(t)\)</span> を求めたい</li>
+</ul>
+</section>
+<section id="常微分方程式の初期値問題-2" class="slide level1">
+<h1>常微分方程式の初期値問題</h1>
+<ul>
+<li>矢印の方向に流れていくようなイメージ</li>
+</ul>
+<p><img class="center_img" src="resource/exponential_vf.png" /></p>
+</section>
+<section id="解析解と数値近似" class="slide level1">
+<h1>解析解と数値近似</h1>
+<ul>
+<li>解析解が求まってくれるとうれしい</li>
+<li>普通は求めるのがとても難しい</li>
+<li>数値計算で近似的に求める</li>
+</ul>
+</section>
+<section id="解析解が求まってくれる例" class="slide level1">
+<h1>解析解が求まってくれる例</h1>
+<ul>
+<li>微分方程式<br /><span class="math">\[
+x^\prime(t) = x(t)
+\]</span></li>
+<li>初期条件<br /><span class="math">\[
+x(0) = 1
+\]</span></li>
+</ul>
+<div class="incremental">
+<ul>
+<li>微分しても変わらないただ一つの関数</li>
+</ul>
+</div>
+<div class="incremental">
+<ul>
+<li>解析解<br /><span class="math">\[
+x(t) = \exp(t) = e^t
+\]</span></li>
+<li>解析解を知らないふりして数値近似を求めてみる</li>
+</ul>
+</div>
+</section>
+<section id="数値近似の基本的な考え方" class="slide level1">
+<h1>数値近似の基本的な考え方</h1>
+<ul>
+<li><ruby>陽的<rt>explicit</rt></ruby> Euler 法<br /><span class="math">\[
+x(t+\Delta t) \approx x(t) + x^\prime(t) \Delta t
+\]</span>
+<ol type="1">
+<li>ステップ <span class="math">\(\Delta t\)</span> を決める</li>
+<li>パラメータ <span class="math">\(t\)</span> で微分を求める</li>
+<li>パラメータ <span class="math">\(t+\Delta t\)</span> まで接線方向に進む</li>
+<li>パラメータを <span class="math">\(t+\Delta t\)</span> に進める</li>
+<li>再帰</li>
+</ol></li>
+</ul>
+</section>
+<section id="陽的-euler-法" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>手計算</li>
+</ul>
+</section>
+<section id="陽的-euler-法-1" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<div style="font-size:70%">
+<ul>
+<li><span class="math">\(x^\prime(t)=x(t), \Delta t = 0.1\)</span></li>
+<li>パラメータ <span class="math">\(t = 0\)</span></li>
+<li>未知関数 <span class="math">\(x(0) = 1\)</span></li>
+<li>微分 <span class="math">\(x^\prime(0) = 1\)</span></li>
+<li>接線方向に進む <span class="math">\(x(0.1) \approx x(0) + x^\prime(0) \Delta t = 1.1\)</span></li>
+</ul>
+</div>
+<p><img class="center_img" src="resource/ploteu1.png" width="70%" /></p>
+</section>
+<section id="陽的-euler-法-2" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<div style="font-size:70%">
+<ul>
+<li><span class="math">\(x^\prime(t)=x(t), \Delta t = 0.1\)</span></li>
+<li>パラメータ <span class="math">\(t = 0.1\)</span></li>
+<li>未知関数 <span class="math">\(x(0.1) = 1.1\)</span></li>
+<li>微分 <span class="math">\(x^\prime(0.1) = 1.1\)</span></li>
+<li>接線方向に進む <span class="math">\(x(0.2) \approx x(0.1) + x^\prime(0.1) \Delta t = 1.21\)</span></li>
+</ul>
+</div>
+<p><img class="center_img" src="resource/ploteu2.png" width="70%" /></p>
+</section>
+<section id="陽的-euler-法-3" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>手計算2回やったら飽きる</li>
+<li>odeintに解いてもらう</li>
+<li>状態の型を決める</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;array&gt;</span>
+<span class="ot">#include &lt;boost/numeric/odeint.hpp&gt;</span>
+<span class="kw">namespace</span> odeint = boost::numeric::odeint;
+<span class="kw">using</span> state_type = std::array&lt; <span class="dt">double</span>, <span class="dv">1</span> &gt;;</code></pre>
+</section>
+<section id="陽的-euler-法-4" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>システム <span class="math">\(x^\prime = f(x,t)\)</span> を記述する</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> exponential = [](
+  <span class="dt">const</span> state_type &amp;x,
+  state_type &amp;dxdt,
+  <span class="dt">const</span> <span class="dt">double</span> <span class="co">/* t */</span>
+) {
+  dxdt[ <span class="dv">0</span> ] = x[ <span class="dv">0</span> ]; <span class="co">// x`(t) = x(t)</span>
+};</code></pre>
+</section>
+<section id="陽的-euler-法-5" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>初期値とか</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> x0 = state_type{ <span class="fl">1.</span><span class="dv">0</span> }; <span class="co">// 初期状態</span>
+<span class="kw">auto</span> t0 = <span class="fl">0.</span><span class="dv">0</span>; <span class="co">// 開始パラメータ</span>
+<span class="kw">auto</span> t1 = <span class="fl">1.</span><span class="dv">0</span>; <span class="co">// 終了パラメータ</span>
+<span class="kw">auto</span> dt = <span class="fl">0.</span><span class="dv">1</span>; <span class="co">// ステップ</span></code></pre>
+</section>
+<section id="陽的-euler-法-6" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>求める</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> stepper =
+  odeint::euler&lt; state_type &gt;();
+odeint::integrate_const(
+  stepper, exponential, x0, t0, t1, dt,
+  [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+    std::cout &lt;&lt; t &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="陽的-euler-法-7" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>できあがったものがこちらです</li>
+<li>粗い気がする</li>
+</ul>
+<p><img class="center_img" src="resource/plotexponential_dt01.png" /></p>
+</section>
+<section id="陽的-euler-法-8" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li>実際粗い</li>
+<li><span class="math">\(\Delta t\)</span> = 1.0e-1, 相対誤差 4.5e-2</li>
+</ul>
+</section>
+<section id="陽的-euler-法-9" class="slide level1">
+<h1>陽的 Euler 法</h1>
+<ul>
+<li><span class="math">\(\Delta t\)</span> を細かくすると精度がよくなる</li>
+<li><span class="math">\(\Delta t\)</span> = 1.0e-2, 相対誤差 4.9e-3</li>
+</ul>
+<p><img class="center_img" src="resource/plotexponential_dt001.png" /></p>
+</section>
+<section id="数値近似の基本的な考え方-1" class="slide level1">
+<h1>数値近似の基本的な考え方</h1>
+<ul>
+<li><span class="math">\(\Delta t\)</span> をもっと細かくすればいい気がする</li>
+<li>精度1ケタ上げるのに10倍の計算が必要</li>
+<li>このままだとつらい</li>
+</ul>
+</section>
+<section id="runge-kutta-法" class="slide level1">
+<h1>Runge-Kutta 法</h1>
+<ul>
+<li>精度を改善したやつ</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> stepper =
+  odeint::runge_kutta4&lt; state_type &gt;();
+odeint::integrate_const(
+  stepper, exponential, x0, t0, t1, dt,
+  [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+    std::cout &lt;&lt; t &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="runge-kutta-法-1" class="slide level1">
+<h1>Runge-Kutta 法</h1>
+<ul>
+<li>たいへんぴったり</li>
+<li><span class="math">\(\Delta t\)</span> = 1.0e-1, 相対誤差 7.6e-7</li>
+</ul>
+<p><img class="center_img" src="resource/plotexponential_rk_dt01.png" /></p>
+</section>
+<section id="runge-kutta-法-2" class="slide level1">
+<h1>Runge-Kutta 法</h1>
+<ul>
+<li><span class="math">\(\Delta t\)</span> による誤差の変化</li>
+<li>Runge-Kutta 法ならなんとかしてくれる</li>
+</ul>
+<p><img class="center_img" src="resource/ploterr_eu.png" /></p>
+</section>
+<section id="いろんな数値近似" class="slide level1">
+<h1>いろんな数値近似</h1>
+<ul>
+<li>odeintに用意されている解法</li>
+</ul>
+<p><img class="center_img" src="resource/odeintlist.png" width="90%" /></p>
+</section>
+<section id="いろんな数値近似-1" class="slide level1">
+<h1>いろんな数値近似</h1>
+<ul>
+<li>たくさんある</li>
+</ul>
+</section>
+<section id="いろんな数値近似の考え方" class="slide level1">
+<h1>いろんな数値近似の考え方</h1>
+<ul>
+<li>odeintに用意されている解法の考え方</li>
+<li>次数</li>
+<li>適応的</li>
+<li>陽解法と陰解法</li>
+<li>1ステップ法とマルチステップ法</li>
+<li>数列加速</li>
+</ul>
+</section>
+<section id="次数" class="slide level1">
+<h1>次数</h1>
+<ul>
+<li>未知関数 <span class="math">\(x(t)\)</span> を多項式展開</li>
+<li>近似なので ある次数で項を打ち切っている</li>
+<li>高次の項まで使えば精度がよくなる</li>
+<li>Euler 法 <code>odeint::euler</code><br />1次近似</li>
+<li>Runge-Kutta 法 <code>odeint::runge_kutta4</code><br />4次近似</li>
+</ul>
+</section>
+<section id="適応的" class="slide level1">
+<h1>適応的</h1>
+<ul>
+<li>近似値を求めたついでに<br />打ち切り誤差の推定値も求める</li>
+<li>Dormand–Prince 法 <code>odeint::runge_kutta_dopri5</code><br />近似: 5次, 誤差: 4次</li>
+<li>Fehlberg 法 <code>odeint::runge_kutta_fehlberg78</code><br />近似: 8次, 誤差: 7次</li>
+<li><span class="math">\(\Delta t\)</span>を自動的に補正できる<br />誤差が大きければ <span class="math">\(\Delta t\)</span> を小さく<br />誤差が小さければ <span class="math">\(\Delta t\)</span> を大きく</li>
+</ul>
+</section>
+<section id="陽解法と陰解法" class="slide level1">
+<h1>陽解法と陰解法</h1>
+<ul>
+<li><ruby>陽的<rt>explicit</rt></ruby> Euler 法 <code>odeint::euler</code><br /><span class="math">\[
+x(t+\Delta t) \approx x(t) + f(x, t) \Delta t
+\]</span></li>
+<li><ruby>陰的<rt>implicit</rt></ruby> Euler 法 <code>odeint::implicit_euler</code><br /><span class="math">\[
+x(t+\Delta t) \approx x(t) + f(x(t+\Delta t), t) \Delta t
+\]</span></li>
+<li>陰解法は両辺に<span class="math">\(x(t+\Delta t)\)</span>が出てくる</li>
+</ul>
+</section>
+<section id="陽解法と陰解法-1" class="slide level1">
+<h1>陽解法と陰解法</h1>
+<ul>
+<li>陰解法は計算がめんどくさい<br />関数<span class="math">\(f\)</span>をベクトル<span class="math">\(x\)</span>で微分したもの (Jacobian) が必要になる</li>
+<li>陰解法は安定性が高い<br /><ruby>硬い<rt>stiff</rt></ruby>微分方程式のときに使う</li>
+<li>Rosenbrock 法 <code>odeint::rosenbrock4</code><br />高次の陰解法<br />さらに適応的な方法も使える</li>
+</ul>
+</section>
+<section id="一般化-runge-kutta-法" class="slide level1">
+<h1>一般化 Runge-Kutta 法</h1>
+<ul>
+<li>次数, 適応的, 陽解法/陰解法を一般化する<br /><span class="math">\[
+x(t+\Delta t) \approx x(t) + \Delta t \sum_{i=1}^s { b_i k_i },
+\]</span> <span class="math">\[
+k_i = f(x(t)+\sum_{j=1}^s {a_{ij} k_j}, t + c_i \Delta t), i = 1,...,s
+\]</span></li>
+<li><span class="math">\(k\)</span>は予測値, <span class="math">\(a, b\)</span>は予測値の重みづけ, <span class="math">\(c\)</span>はパラメータの進め具合</li>
+<li>係数 <span class="math">\(a,b,c\)</span>によって解法の特性が決まる</li>
+</ul>
+</section>
+<section id="一般化-runge-kutta-法-1" class="slide level1">
+<h1>一般化 Runge-Kutta 法</h1>
+<ul>
+<li>Butcher tableau: 係数 <span class="math">\(a,b,c\)</span>の一覧表<br /><span class="math">\[
+ \begin{array}{c|cccc}
+ c_1&amp;a_{11}&amp;a_{12}&amp;\cdots&amp;a_{1s} \\
+ c_2&amp;a_{21}&amp;a_{22}&amp;\cdots&amp;a_{2s} \\
+ \vdots&amp;\vdots&amp;\vdots&amp;\ddots&amp;\vdots \\
+ c_s&amp;a_{s1}&amp;a_{s2}&amp;\cdots &amp;a_{ss} \\ \hline
+ &amp;b_1&amp;b_2&amp;\cdots &amp;b_{s}
+ \end{array}
+\]</span></li>
+</ul>
+</section>
+<section id="一般化-runge-kutta-法-2" class="slide level1">
+<h1>一般化 Runge-Kutta 法</h1>
+<ul>
+<li>陽的 Euler 法の Butcher tableau<br /><span class="math">\[
+ \begin{array}{c|c}
+ 0&amp; \\ \hline
+  &amp;1
+ \end{array}
+\]</span></li>
+<li>陰的 Euler 法の Butcher tableau<br /><span class="math">\[
+ \begin{array}{c|c}
+ 1&amp;1 \\ \hline
+  &amp;1
+ \end{array}
+\]</span></li>
+</ul>
+</section>
+<section id="一般化-runge-kutta-法-3" class="slide level1">
+<h1>一般化 Runge-Kutta 法</h1>
+<ul>
+<li>(古典的) Runge-Kutta 法の Butcher tableau<br /><span class="math">\[
+ \begin{array}{c|cccc}
+ 0&amp;&amp;&amp;&amp; \\
+ 1/2&amp;1/2&amp;&amp;&amp; \\
+ 1/2&amp;0&amp;1/2&amp;&amp; \\
+ 1&amp;0&amp;0&amp;1&amp; \\ \hline
+  &amp;1/6&amp;1/3&amp;1/3&amp;1/6
+ \end{array}
+\]</span></li>
+</ul>
+</section>
+<section id="マルチステップ法" class="slide level1">
+<h1>マルチステップ法</h1>
+<ul>
+<li>1ステップ法<br /><span class="math">\(x(t)\)</span>をもとに<span class="math">\(x(t+\Delta t)\)</span>を求める<br />Runge-Kutta 法の仲間はこれ<br />中間の値は求めているが、次のステップでは使っていない</li>
+<li>マルチステップ法<br />過去の数ステップをもとに次のステップを求める<br />ステップ数により次数が決まる</li>
+<li>Adams-Bashforth 法 <code>odeint::adams_bashforth</code></li>
+</ul>
+</section>
+<section id="数列加速" class="slide level1">
+<h1>数列加速</h1>
+<ul>
+<li>マルチステップ法でステップを細かくしていくと精度が上がっていく</li>
+<li>精度が上がっていく上がり方を数列加速を使って外挿する</li>
+<li>らしい</li>
+<li>ステップ長と次数が両方とも適応的</li>
+<li>Bulirsch-Stoer 法 <code>odeint::bulirsch_stoer</code></li>
+</ul>
+</section>
+<section id="クロソイド曲線を書いてみる" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>直線と円弧のあいだをなめらかにつなぐ曲線</li>
+<li>高速道路のインターチェンジなど</li>
+</ul>
+<p><img class="center_img" src="resource/17180604744_bbb27efc5f_z.jpg" width="60%" /></p>
+<div class="cite">
+<p>https://www.flickr.com/photos/jqpubliq/17180604744/</p>
+</div>
+</section>
+<section id="クロソイド曲線を書いてみる-1" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>曲率半径 <span class="math">\(R\)</span></li>
+<li>曲線長 <span class="math">\(t\)</span></li>
+<li>クロソイドパラメータ <span class="math">\(A\)</span></li>
+<li>クロソイド曲線<br /><span class="math">\[
+R(t) \cdot t = A^2
+\]</span></li>
+<li>曲線長に反比例して半径が小さくなっていく</li>
+</ul>
+</section>
+<section id="クロソイド曲線を書いてみる-2" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>曲率半径の別表示, 角度 <span class="math">\(\theta\)</span><br /><span class="math">\[
+\frac{1}{R}=\frac{d\theta}{d t}=A^2t
+\]</span></li>
+<li>手動で積分<br /><span class="math">\[
+\theta = \frac{1}{2} A^2 t^2
+\]</span></li>
+<li>ある曲線長の時点で曲線が進む方向が分かる</li>
+<li>進む距離は単位長さ</li>
+<li>クロソイドパラメータ <span class="math">\(A\)</span> は省略して1とする</li>
+</ul>
+</section>
+<section id="クロソイド曲線を書いてみる-3" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>微分方程式<br /><span class="math">\[
+x^\prime(t) = \cos \frac{t^2}{2}, y^\prime(t) = \sin \frac{t^2}{2}
+\]</span></li>
+<li>初期条件<br /><span class="math">\[
+x(0)=0, y(0)=0
+\]</span></li>
+<li>右辺で状態を使っていない (普通の積分)</li>
+<li>かんたんそう</li>
+<li>解析解は求まらない</li>
+</ul>
+</section>
+<section id="クロソイド曲線を書いてみる-4" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>システムを記述する</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">using</span> state_type = std::array&lt; <span class="dt">double</span>, <span class="dv">2</span> &gt;;
+<span class="kw">auto</span> clothoid = [](
+  <span class="dt">const</span> state_type &amp;<span class="co">/* x */</span>,
+  state_type &amp;dxdt,
+  <span class="dt">const</span> <span class="dt">double</span> t
+) {
+  dxdt[ <span class="dv">0</span> ] = cos( t * t / <span class="fl">2.</span><span class="dv">0</span> ); <span class="co">// x`</span>
+  dxdt[ <span class="dv">1</span> ] = sin( t * t / <span class="fl">2.</span><span class="dv">0</span> ); <span class="co">// y`</span>
+}</code></pre>
+</section>
+<section id="クロソイド曲線を書いてみる-5" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>デフォルトの積分関数を使ってみる</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> x0 = state_type{ <span class="fl">0.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">0</span> }; <span class="co">// 初期状態</span>
+<span class="kw">auto</span> t0 = <span class="fl">0.</span><span class="dv">0</span>;
+<span class="kw">auto</span> t1 = <span class="fl">10.</span><span class="dv">0</span>;
+<span class="kw">auto</span> dt = <span class="fl">0.</span><span class="bn">01</span>;
+odeint::integrate(
+  clothoid, x0, t0, t1, dt,
+  []( <span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t ){
+    std::cout &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">1</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="クロソイド曲線を書いてみる-6" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>なんか粗い気がする</li>
+</ul>
+<p><img class="center_img" src="resource/plotclothoid0.png" /></p>
+</section>
+<section id="クロソイド曲線を書いてみる-7" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li><code>integrate</code> は <code>dt</code> を適応的に変化させている</li>
+<li><code>t1</code> のときの結果が欲しければこれで十分</li>
+<li>精度の良い計算もほしいが、曲線の軌跡もほしい</li>
+<li><code>runge_kutta_dopri5</code> と <code>integrate_const</code> を使う</li>
+<li>適応的にステップを変化させるラッパーを付ける必要がある</li>
+</ul>
+</section>
+<section id="クロソイド曲線を書いてみる-8" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>積分の設定を少し変更</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> stepper =
+  odeint::controlled_runge_kutta&lt;
+    odeint::runge_kutta_dopri5&lt; state_type &gt; &gt;();
+odeint::integrate_const(
+  stepper, clothoid, x0, t0, t1, dt,
+  []( <span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t ){
+    std::cout &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">1</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="クロソイド曲線を書いてみる-9" class="slide level1">
+<h1>クロソイド曲線を書いてみる</h1>
+<ul>
+<li>じょうずにできました</li>
+</ul>
+<p><img class="center_img" src="resource/plotclothoid.png" /></p>
+</section>
+<section id="複素数表現にしてみる" class="slide level1">
+<h1>複素数表現にしてみる</h1>
+<ul>
+<li>クロソイド曲線を複素数表現にしてみる</li>
+</ul>
+<p><span class="math">\[
+z^\prime(t) = \exp \frac{it^2}{2}, i = \sqrt {-1}
+\]</span></p>
+</section>
+<section id="複素数表現にしてみる-1" class="slide level1">
+<h1>複素数表現にしてみる</h1>
+<ul>
+<li>システム</li>
+<li>型を <code>array</code> から <code>complex</code> に変更するだけ</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="co">//using state_type = std::array&lt; double, 2 &gt;;</span>
+  <span class="kw">using</span> state_type = std::complex&lt; <span class="dt">double</span> &gt;;
+  <span class="kw">auto</span> clothoid = [](
+    <span class="dt">const</span> state_type &amp;<span class="co">/* x */</span>,
+    state_type &amp;dxdt,
+    <span class="dt">const</span> <span class="dt">double</span> t
+  ) {
+<span class="co">//  dxdt[ 0 ] = cos( t * t / 2.0 );</span>
+<span class="co">//  dxdt[ 1 ] = sin( t * t / 2.0 );</span>
+    dxdt = std::exp( <span class="er">1i</span> * t * t / <span class="fl">2.</span><span class="dv">0</span> );
+  };</code></pre>
+</section>
+<section id="複素数表現にしてみる-2" class="slide level1">
+<h1>複素数表現にしてみる</h1>
+<ul>
+<li>積分</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">auto</span> stepper =
+    odeint::controlled_runge_kutta&lt;
+      odeint::runge_kutta_dopri5&lt; state_type &gt; &gt;();
+  odeint::integrate_const(
+    stepper, clothoid, x0, t0, t1, dt,
+    [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+<span class="co">//    std::cout &lt;&lt; x[ 0 ] &lt;&lt; &quot;\t&quot;</span>
+<span class="co">//              &lt;&lt; x[ 1 ] &lt;&lt; std::endl;</span>
+      std::cout &lt;&lt; x.real() &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+                &lt;&lt; x.imag() &lt;&lt; std::endl;
+    } );</code></pre>
+</section>
+<section id="複素数表現にしてみる-3" class="slide level1">
+<h1>複素数表現にしてみる</h1>
+<ul>
+<li>だいたいいっしょ</li>
+<li>テンプレート力高い<br />むしろユーザコードの方が残念に感じられる</li>
+</ul>
+</section>
+<section id="天体の動き" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>天体の動きを書いてみる</li>
+<li>恒星(原点固定) と 惑星1個</li>
+<li>惑星が原点付近を通るとﾋﾞｭﾝってなる<br />精度が下がりやすい</li>
+</ul>
+</section>
+<section id="天体の動き-1" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>万有引力から運動方程式をそのまま書く<br /><span class="math">\[
+m r^{\prime \prime} = -\frac{r}{|r|} G \frac{Mm}{|r|^2}
+\]</span></li>
+<li>めんどくさいので係数を省略<br /><span class="math">\[
+r^{\prime \prime} = -\frac{r}{|r|^3}
+\]</span></li>
+<li>ベクトル <span class="math">\(r\)</span> を成分 <span class="math">\(x, y\)</span> に分解<br /><span class="math">\[
+x^{\prime \prime} = -\frac{x}{(x^2+y^2)^{3/2}}, 
+\]</span> <span class="math">\[
+y^{\prime \prime} = -\frac{y}{(x^2+y^2)^{3/2}}
+\]</span></li>
+</ul>
+</section>
+<section id="天体の動き-2" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>2階微分が出てくる</li>
+<li>速度成分 <span class="math">\(u, v\)</span> で置きなおす<br /><span class="math">\[
+u = x^\prime, v = y^\prime
+\]</span></li>
+<li>微分すると<br /><span class="math">\[
+u^\prime = x^{\prime \prime}, v^\prime = y^{\prime \prime}
+\]</span></li>
+</ul>
+</section>
+<section id="天体の動き-3" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>微分方程式<br /><span class="math">\[
+x^\prime = u, u^\prime = -\frac{x}{(x^2+y^2)^{3/2}}, 
+\]</span> <span class="math">\[
+y^\prime = v, v^\prime = -\frac{y}{(x^2+y^2)^{3/2}}
+\]</span></li>
+<li>初期条件<br /><span class="math">\[
+x(0) = 3, u(0) = 0.3,
+\]</span> <span class="math">\[
+y(0) = 0, v(0) = 0.2
+\]</span></li>
+<li>右辺で時刻 <span class="math">\(t\)</span> を使っていない</li>
+</ul>
+</section>
+<section id="天体の動き-4" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>システム</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">using</span> state_type = std::vector&lt; <span class="dt">double</span> &gt;;
+<span class="kw">auto</span> astro = [](
+  <span class="dt">const</span> state_type &amp;x,
+  state_type &amp;dxdt,
+  <span class="dt">const</span> <span class="dt">double</span> <span class="co">/*t*/</span>
+) {
+  dxdt[ <span class="dv">0</span> ] = x[ <span class="dv">2</span> ]; <span class="co">// u`</span>
+  dxdt[ <span class="dv">1</span> ] = x[ <span class="dv">3</span> ]; <span class="co">// v`</span>
+  <span class="kw">auto</span> r2 = x[ <span class="dv">0</span> ] * x[ <span class="dv">0</span> ] + x[ <span class="dv">1</span> ] * x[ <span class="dv">1</span> ];
+  <span class="kw">auto</span> r3 = pow( r2, <span class="fl">3.</span><span class="dv">0</span> / <span class="fl">2.</span><span class="dv">0</span> );
+  dxdt[ <span class="dv">2</span> ] = -x[ <span class="dv">0</span> ] / r3; <span class="co">// x`</span>
+  dxdt[ <span class="dv">3</span> ] = -x[ <span class="dv">1</span> ] / r3; <span class="co">// y`</span>
+};</code></pre>
+</section>
+<section id="天体の動き-5" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>積分</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> x0 = state_type{ <span class="fl">3.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">3</span>, <span class="fl">0.</span><span class="dv">2</span> };
+<span class="kw">auto</span> t0 = <span class="fl">0.</span><span class="dv">0</span>, t1 = <span class="fl">16.</span><span class="dv">0</span>, dt = <span class="fl">0.</span><span class="bn">01</span>;
+<span class="kw">auto</span> stepper =
+  odeint::controlled_runge_kutta&lt;
+    odeint::runge_kutta_dopri5&lt; state_type &gt; &gt;();
+odeint::integrate_const(
+  stepper, astro, x0, t0, t1, dt,
+  [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+    std::cout &lt;&lt; t &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">1</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="天体の動き-6" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>実際楕円</li>
+</ul>
+<p><img class="center_img" src="resource/astro0.png" /></p>
+</section>
+<section id="天体の動き-7" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li><span class="math">\(x, y\)</span> 成分も見てみる</li>
+<li>よく追従できている</li>
+</ul>
+<p><img class="center_img" src="resource/astro0xy.png" /></p>
+</section>
+<section id="天体の動き-8" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li><span class="math">\(\Delta t\)</span> を粗くしてみる <code>dt = 0.2</code></li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> x0 = state_type{ <span class="fl">3.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">3</span>, <span class="fl">0.</span><span class="dv">2</span> };
+<span class="kw">auto</span> t0 = <span class="fl">0.</span><span class="dv">0</span>, t1 = <span class="fl">16.</span><span class="dv">0</span>, dt = <span class="fl">0.</span><span class="dv">2</span>;
+<span class="kw">auto</span> stepper =
+  odeint::controlled_runge_kutta&lt;
+    odeint::runge_kutta_dopri5&lt; state_type &gt; &gt;();
+odeint::integrate_const(
+  stepper, astro, x0, t0, t1, dt,
+  [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+    std::cout &lt;&lt; t &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">1</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="天体の動き-9" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>描画は粗いがちゃんと戻ってきている</li>
+<li>中身で適応的に計算しているおかげ</li>
+</ul>
+<p><img class="center_img" src="resource/astro.png" /></p>
+</section>
+<section id="天体の動き-10" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>よく追従できている</li>
+</ul>
+<p><img class="center_img" src="resource/astroxy.png" /></p>
+</section>
+<section id="天体の動き-11" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>適応的方法で出力してみる <code>dt = 0.2</code></li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">auto</span> x0 = state_type{ <span class="fl">3.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">0</span>, <span class="fl">0.</span><span class="dv">3</span>, <span class="fl">0.</span><span class="dv">2</span> };
+<span class="kw">auto</span> t0 = <span class="fl">0.</span><span class="dv">0</span>, t1 = <span class="fl">16.</span><span class="dv">0</span>, dt = <span class="fl">0.</span><span class="dv">2</span>;
+<span class="kw">auto</span> stepper =
+  odeint::controlled_runge_kutta&lt;
+    odeint::runge_kutta_dopri5&lt; state_type &gt; &gt;();
+odeint::integrate_adaptive(
+  stepper, astro, x0, t0, t1, dt,
+  [](<span class="dt">const</span> state_type &amp;x, <span class="dt">const</span> <span class="dt">double</span> t){
+    std::cout &lt;&lt; t &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">0</span> ] &lt;&lt; <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>
+              &lt;&lt; x[ <span class="dv">1</span> ] &lt;&lt; std::endl;
+  } );</code></pre>
+</section>
+<section id="天体の動き-12" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>原点付近でがんばって計算していることがわかる</li>
+</ul>
+<p><img class="center_img" src="resource/astroa.png" /></p>
+</section>
+<section id="天体の動き-13" class="slide level1">
+<h1>天体の動き</h1>
+<ul>
+<li>よく追従できている</li>
+</ul>
+<p><img class="center_img" src="resource/astroaxy.png" /></p>
+</section>
+<section id="感想" class="slide level1">
+<h1>感想</h1>
+<ul>
+<li>いろんな微分方程式の数値解法がのっていておもしろかった<br />正直 (古典的) Runge-Kutta 法ぐらいしか知らなかった</li>
+<li>テンプレート力高い (再掲)</li>
+<li>OpenMP とか OpenCL とかでも遊んでみたい</li>
+</ul>
+</section>
+<section id="蛇足" class="slide level1">
+<h1>蛇足</h1>
+<ul>
+<li>AC-Engine<br />複数言語複数プラットフォーム対応を目指す<br />https://github.com/ac-engine/ac-engine</li>
+<li>なんかがんばっているので手伝ってあげてください</li>
+</ul>
+</section>
+<!-- {{{{ dzslides core
+#
+#
+#     __  __  __       .  __   ___  __
+#    |  \  / /__` |    | |  \ |__  /__`
+#    |__/ /_ .__/ |___ | |__/ |___ .__/ core :€
+#
+#
+# The following block of code is not supposed to be edited.
+# But if you want to change the behavior of these slides,
+# feel free to hack it!
+#
+-->
+
+<div id="progress-bar"></div>
+
+<!-- Default Style -->
+<style>
+  * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  details { display: none; }
+  body {
+    width: 800px; height: 600px;
+    margin-left: -400px; margin-top: -300px;
+    position: absolute; top: 50%; left: 50%;
+    overflow: hidden;
+  }
+  section {
+    position: absolute;
+    pointer-events: none;
+    width: 100%; height: 100%;
+  }
+  section[aria-selected] { pointer-events: auto; }
+  html { overflow: hidden; }
+  body { display: none; }
+  body.loaded { display: block; }
+  .incremental {visibility: hidden; }
+  .incremental[active] {visibility: visible; }
+  #progress-bar{
+    bottom: 0;
+    position: absolute;
+    -moz-transition: width 400ms linear 0s;
+    -webkit-transition: width 400ms linear 0s;
+    -ms-transition: width 400ms linear 0s;
+    transition: width 400ms linear 0s;
+  }
+  figure {
+    width: 100%;
+    height: 100%;
+  }
+  figure > * {
+    position: absolute;
+  }
+  figure > img, figure > video {
+    width: 100%; height: 100%;
+  }
+</style>
+
+<script>
+  var Dz = {
+    remoteWindows: [],
+    idx: -1,
+    step: 0,
+    slides: null,
+    progressBar : null,
+    params: {
+      autoplay: "1"
+    }
+  };
+
+  Dz.init = function() {
+    document.body.className = "loaded";
+    this.slides = $$("body > section");
+    this.progressBar = $("#progress-bar");
+    this.setupParams();
+    this.onhashchange();
+    this.setupTouchEvents();
+    this.onresize();
+  }
+  
+  Dz.setupParams = function() {
+    var p = window.location.search.substr(1).split('&');
+    p.forEach(function(e, i, a) {
+      var keyVal = e.split('=');
+      Dz.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
+    });
+  // Specific params handling
+    if (!+this.params.autoplay)
+      $$.forEach($$("video"), function(v){ v.controls = true });
+  }
+
+  Dz.onkeydown = function(aEvent) {
+    // Don't intercept keyboard shortcuts
+    if (aEvent.altKey
+      || aEvent.ctrlKey
+      || aEvent.metaKey
+      || aEvent.shiftKey) {
+      return;
+    }
+    if ( aEvent.keyCode == 37 // left arrow
+      || aEvent.keyCode == 38 // up arrow
+      || aEvent.keyCode == 33 // page up
+    ) {
+      aEvent.preventDefault();
+      this.back();
+    }
+    if ( aEvent.keyCode == 39 // right arrow
+      || aEvent.keyCode == 40 // down arrow
+      || aEvent.keyCode == 34 // page down
+    ) {
+      aEvent.preventDefault();
+      this.forward();
+    }
+    if (aEvent.keyCode == 35) { // end
+      aEvent.preventDefault();
+      this.goEnd();
+    }
+    if (aEvent.keyCode == 36) { // home
+      aEvent.preventDefault();
+      this.goStart();
+    }
+    if (aEvent.keyCode == 32) { // space
+      aEvent.preventDefault();
+      this.toggleContent();
+    }
+    if (aEvent.keyCode == 70) { // f
+      aEvent.preventDefault();
+      this.goFullscreen();
+    }
+  }
+
+  /* Touch Events */
+
+  Dz.setupTouchEvents = function() {
+    var orgX, newX;
+    var tracking = false;
+
+    var db = document.body;
+    db.addEventListener("touchstart", start.bind(this), false);
+    db.addEventListener("touchmove", move.bind(this), false);
+
+    function start(aEvent) {
+      aEvent.preventDefault();
+      tracking = true;
+      orgX = aEvent.changedTouches[0].pageX;
+    }
+
+    function move(aEvent) {
+      if (!tracking) return;
+      newX = aEvent.changedTouches[0].pageX;
+      if (orgX - newX > 100) {
+        tracking = false;
+        this.forward();
+      } else {
+        if (orgX - newX < -100) {
+          tracking = false;
+          this.back();
+        }
+      }
+    }
+  }
+
+  /* Adapt the size of the slides to the window */
+
+  Dz.onresize = function() {
+    var db = document.body;
+    var sx = db.clientWidth / window.innerWidth;
+    var sy = db.clientHeight / window.innerHeight;
+    var transform = "scale(" + (1/Math.max(sx, sy)) + ")";
+
+    db.style.MozTransform = transform;
+    db.style.WebkitTransform = transform;
+    db.style.OTransform = transform;
+    db.style.msTransform = transform;
+    db.style.transform = transform;
+  }
+
+
+  Dz.getDetails = function(aIdx) {
+    var s = $("section:nth-of-type(" + aIdx + ")");
+    var d = s.$("details");
+    return d ? d.innerHTML : "";
+  }
+
+  Dz.onmessage = function(aEvent) {
+    var argv = aEvent.data.split(" "), argc = argv.length;
+    argv.forEach(function(e, i, a) { a[i] = decodeURIComponent(e) });
+    var win = aEvent.source;
+    if (argv[0] === "REGISTER" && argc === 1) {
+      this.remoteWindows.push(win);
+      this.postMsg(win, "REGISTERED", document.title, this.slides.length);
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+      return;
+    }
+    if (argv[0] === "BACK" && argc === 1)
+      this.back();
+    if (argv[0] === "FORWARD" && argc === 1)
+      this.forward();
+    if (argv[0] === "START" && argc === 1)
+      this.goStart();
+    if (argv[0] === "END" && argc === 1)
+      this.goEnd();
+    if (argv[0] === "TOGGLE_CONTENT" && argc === 1)
+      this.toggleContent();
+    if (argv[0] === "SET_CURSOR" && argc === 2)
+      window.location.hash = "#" + argv[1];
+    if (argv[0] === "GET_CURSOR" && argc === 1)
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+    if (argv[0] === "GET_NOTES" && argc === 1)
+      this.postMsg(win, "NOTES", this.getDetails(this.idx));
+  }
+
+  Dz.toggleContent = function() {
+    // If a Video is present in this new slide, play it.
+    // If a Video is present in the previous slide, stop it.
+    var s = $("section[aria-selected]");
+    if (s) {
+      var video = s.$("video");
+      if (video) {
+        if (video.ended || video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+    }
+  }
+
+  Dz.setCursor = function(aIdx, aStep) {
+    // If the user change the slide number in the URL bar, jump
+    // to this slide.
+    aStep = (aStep != 0 && typeof aStep !== "undefined") ? "." + aStep : ".0";
+    window.location.hash = "#" + aIdx + aStep;
+  }
+
+  Dz.onhashchange = function() {
+    var cursor = window.location.hash.split("#"),
+        newidx = 1,
+        newstep = 0;
+    if (cursor.length == 2) {
+      newidx = ~~cursor[1].split(".")[0];
+      newstep = ~~cursor[1].split(".")[1];
+      if (newstep > Dz.slides[newidx - 1].$$('.incremental > *').length) {
+        newstep = 0;
+        newidx++;
+      }
+    }
+    this.setProgress(newidx, newstep);
+    if (newidx != this.idx) {
+      this.setSlide(newidx);
+    }
+    if (newstep != this.step) {
+      this.setIncremental(newstep);
+    }
+    for (var i = 0; i < this.remoteWindows.length; i++) {
+      this.postMsg(this.remoteWindows[i], "CURSOR", this.idx + "." + this.step);
+    }
+  }
+
+  Dz.back = function() {
+    if (this.idx == 1 && this.step == 0) {
+      return;
+    }
+    if (this.step == 0) {
+      this.setCursor(this.idx - 1,
+                     this.slides[this.idx - 2].$$('.incremental > *').length);
+    } else {
+      this.setCursor(this.idx, this.step - 1);
+    }
+  }
+
+  Dz.forward = function() {
+    if (this.idx >= this.slides.length &&
+        this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+        return;
+    }
+    if (this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+      this.setCursor(this.idx + 1, 0);
+    } else {
+      this.setCursor(this.idx, this.step + 1);
+    }
+  }
+
+  Dz.goStart = function() {
+    this.setCursor(1, 0);
+  }
+
+  Dz.goEnd = function() {
+    var lastIdx = this.slides.length;
+    var lastStep = this.slides[lastIdx - 1].$$('.incremental > *').length;
+    this.setCursor(lastIdx, lastStep);
+  }
+
+  Dz.setSlide = function(aIdx) {
+    this.idx = aIdx;
+    var old = $("section[aria-selected]");
+    var next = $("section:nth-of-type("+ this.idx +")");
+    if (old) {
+      old.removeAttribute("aria-selected");
+      var video = old.$("video");
+      if (video) {
+        video.pause();
+      }
+    }
+    if (next) {
+      next.setAttribute("aria-selected", "true");
+      var video = next.$("video");
+      if (video && !!+this.params.autoplay) {
+        video.play();
+      }
+    } else {
+      // That should not happen
+      this.idx = -1;
+      // console.warn("Slide doesn't exist.");
+    }
+  }
+
+  Dz.setIncremental = function(aStep) {
+    this.step = aStep;
+    var old = this.slides[this.idx - 1].$('.incremental > *[aria-selected]');
+    if (old) {
+      old.removeAttribute('aria-selected');
+    }
+    var incrementals = $$('.incremental');
+    if (this.step <= 0) {
+      $$.forEach(incrementals, function(aNode) {
+        aNode.removeAttribute('active');
+      });
+      return;
+    }
+    var next = this.slides[this.idx - 1].$$('.incremental > *')[this.step - 1];
+    if (next) {
+      next.setAttribute('aria-selected', true);
+      next.parentNode.setAttribute('active', true);
+      var found = false;
+      $$.forEach(incrementals, function(aNode) {
+        if (aNode != next.parentNode)
+          if (found)
+            aNode.removeAttribute('active');
+          else
+            aNode.setAttribute('active', true);
+        else
+          found = true;
+      });
+    } else {
+      setCursor(this.idx, 0);
+    }
+    return next;
+  }
+
+  Dz.goFullscreen = function() {
+    var html = $('html'),
+        requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+    if (requestFullscreen) {
+      requestFullscreen.apply(html);
+    }
+  }
+  
+  Dz.setProgress = function(aIdx, aStep) {
+    var slide = $("section:nth-of-type("+ aIdx +")");
+    if (!slide)
+      return;
+    var steps = slide.$$('.incremental > *').length + 1,
+        slideSize = 100 / (this.slides.length - 1),
+        stepSize = slideSize / steps;
+    this.progressBar.style.width = ((aIdx - 1) * slideSize + aStep * stepSize) + '%';
+  }
+  
+  Dz.postMsg = function(aWin, aMsg) { // [arg0, [arg1...]]
+    aMsg = [aMsg];
+    for (var i = 2; i < arguments.length; i++)
+      aMsg.push(encodeURIComponent(arguments[i]));
+    aWin.postMessage(aMsg.join(" "), "*");
+  }
+  
+  function init() {
+    Dz.init();
+    window.onkeydown = Dz.onkeydown.bind(Dz);
+    window.onresize = Dz.onresize.bind(Dz);
+    window.onhashchange = Dz.onhashchange.bind(Dz);
+    window.onmessage = Dz.onmessage.bind(Dz);
+  }
+
+  window.onload = init;
+</script>
+
+
+<script> // Helpers
+  if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+
+      // closest thing possible to the ECMAScript 5 internal IsCallable
+      // function 
+      if (typeof this !== "function")
+      throw new TypeError(
+        "Function.prototype.bind - what is trying to be fBound is not callable"
+      );
+
+      var aArgs = Array.prototype.slice.call(arguments, 1),
+          fToBind = this,
+          fNOP = function () {},
+          fBound = function () {
+            return fToBind.apply( this instanceof fNOP ? this : oThis || window,
+                   aArgs.concat(Array.prototype.slice.call(arguments)));
+          };
+
+      fNOP.prototype = this.prototype;
+      fBound.prototype = new fNOP();
+
+      return fBound;
+    };
+  }
+
+  var $ = (HTMLElement.prototype.$ = function(aQuery) {
+    return this.querySelector(aQuery);
+  }).bind(document);
+
+  var $$ = (HTMLElement.prototype.$$ = function(aQuery) {
+    return this.querySelectorAll(aQuery);
+  }).bind(document);
+
+  $$.forEach = function(nodeList, fun) {
+    Array.prototype.forEach.call(nodeList, fun);
+  }
+
+</script>
+<!-- vim: set fdm=marker: }}} -->
+</body>
+</html>
