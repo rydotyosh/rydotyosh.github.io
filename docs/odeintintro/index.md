@@ -841,6 +841,7 @@ odeint::integrate_adaptive(
 # 蛇足
 
 - AC-Engine
-複数言語複数プラットフォーム対応を目指す
+複数言語・複数プラットフォーム対応(を目指す)ゲームエンジン
 https://github.com/ac-engine/ac-engine
-- なんかがんばっているので手伝ってあげてください
+なんかがんばっているので手伝ってあげてください
+
