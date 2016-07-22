@@ -248,27 +248,20 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <h1>偏微分</h1>
 <ul>
 <li>多変数関数 <span class="math">\(f(x_0, ..., x_n)\)</span> のときに<br /> 1つの変数 <span class="math">\(x_i\)</span> を選んで変化させ<br /> 他の変数は固定する</li>
-<li><ruby>勾配<rt>gradient</rt></ruby> は各変数での偏導関数を並べたもの</li>
+<li><ruby>勾配<rt>gradient</rt></ruby> は各変数で偏微分したものを並べたもの</li>
 </ul>
 <p><img src="resource/Gradient_Visual.svg.png" style="display: block; margin: 0 auto;"  height="280px" /></p>
 <div class="cite">
 <p>http://en.wikipedia.org/wiki/Gradient</p>
 </div>
 </section>
-<section id="微分-導関数" class="slide level1">
-<h1>微分, 導関数</h1>
-<ul>
-<li><ruby>微分<rt>differentiation</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> から 傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span> を求める操作</li>
-<li><ruby>導関数<rt>derivative</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> の傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span></li>
-</ul>
-</section>
 <section id="利用場面" class="slide level1">
 <h1>利用場面</h1>
 <ul>
-<li>シミュレーション, 最適化, 機械学習, ..., etc.<br /> ある点にいるときに勾配を求めて<br /> 誤差が少ないほうに進む</li>
-<li>モデルを表す関数を書いたら<br /> 導関数はコンピュータで自動的に求めてほしい</li>
+<li>シミュレーション<br /> モデルを微分方程式で表して<br /> これを解くことで現象を予測する</li>
+<li>最適化, 機械学習<br /> ある点にいるときに勾配を求めて<br /> 誤差が少ないほうに進む</li>
 </ul>
-<p><img src="resource/opti.png" style="display: block; margin: 0 auto;" height="350px" /></p>
+<p><img src="resource/opti.png" style="display: block; margin: 0 auto;" height="300px" /></p>
 </section>
 <section id="コンピュータで計算する微分" class="slide level1">
 <h1>コンピュータで計算する微分</h1>
@@ -276,6 +269,13 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><ruby>数式微分<rt>symbolic differentiation</rt></ruby><br /> 関数に数式処理をして導関数を求める<br /> 計算に比較的時間がかかる</li>
 <li><ruby>数値微分<rt>numerical differentiation</rt></ruby><br /> 関数の値を数値的に求めて導関数の値を近似する<br /> 浮動小数点誤差の影響が大きい</li>
 <li><ruby>自動微分<rt>automatic differentiation</rt></ruby><br /> 数式微分と数値微分の中間的な方法<br /> 関数の値と導関数の値を求める<br /> 合成関数の微分規則を使う</li>
+</ul>
+</section>
+<section id="微分-導関数" class="slide level1">
+<h1>微分, 導関数</h1>
+<ul>
+<li><ruby>微分<rt>differentiation</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> から 傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span> を求める操作</li>
+<li><ruby>導関数<rt>derivative</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> の傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span></li>
 </ul>
 </section>
 <section id="微分の記法" class="slide level1">
@@ -358,7 +358,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <ul>
 <li>合成関数の計算過程を表した <ruby>閉路のない有向グラフ<rt>directed acyclic graph</rt></ruby></li>
 <li>下から上に向かって計算が進む</li>
-<li>変数・定数は節, 引数は辺 に対応</li>
+<li>変数・関数・定数は<ruby>節<rt>node</rt></ruby>, 引数は<ruby>辺<rt>edge</rt></ruby> に対応</li>
 <li>例 <span class="math">\(y = (x+3) \cdot (4 \cdot x)\)</span></li>
 </ul>
 <p><img src="resource/fig1.png" style="display: block; margin: 0 auto;" height="280px" /></p>
@@ -450,6 +450,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li>微分する入力変数を1個指定する</li>
 <li>関数の値と導関数の値を同時に計算していく</li>
 <li>最終的に関数の値と<br /> 指定した変数での導関数の値が求まる</li>
+<li><span class="math">\(\frac{\partial v}{\partial x}=\frac{\partial v}{\partial a} \cdot \frac{\partial a}{\partial x} + \frac{\partial v}{\partial b} \cdot \frac{\partial b}{\partial x} + \frac{\partial v}{\partial c} \cdot \frac{\partial c}{\partial x}\)</span></li>
 </ul>
 <p><img src="resource/bu01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
 </section>
@@ -606,6 +607,7 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <li>計算過程を全部覚えておく</li>
 <li>関数の値を求め終わったら計算過程を逆にたどる</li>
 <li>最終的に関数の値と<br /> すべての変数での偏導関数の値が求まる</li>
+<li><span class="math">\(\frac{\partial f}{\partial v} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial v} + \frac{\partial f}{\partial b} \cdot \frac{\partial b}{\partial v} + \frac{\partial f}{\partial c} \cdot \frac{\partial c}{\partial v}\)</span></li>
 </ul>
 <p><img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
 </section>
@@ -613,8 +615,8 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <h1>概要 3/3 | トップダウン型</h1>
 <ul>
 <li>下図で <span class="math">\(v\)</span> はどこで何個使われているかは分からない</li>
-<li><span class="math">\(\frac{\partial f}{\partial v}\)</span> は横に並んでいるので和を取ればよい</li>
 <li>各変数 <span class="math">\(v_i\)</span> に <span class="math">\(\frac{\partial f}{\partial v_i}\)</span> を覚えておく領域をとっておき<br /> <span class="math">\(v_i\)</span> が使われたらその領域に加算する</li>
+<li><span class="math">\(\frac{\partial f}{\partial v} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial v} + \frac{\partial f}{\partial b} \cdot \frac{\partial b}{\partial v} + \frac{\partial f}{\partial c} \cdot \frac{\partial c}{\partial v}\)</span></li>
 </ul>
 <p><img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
 </section>
@@ -629,23 +631,24 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <h1>例 1/11 | トップダウン型</h1>
 <ul>
 <li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span></li>
-<li>微分する変数: <span class="math">\(y\)</span><br /> 導関数の値を <span class="math">\(1\)</span> とする (<span class="math">\(\frac{\partial y}{\partial y}=1\)</span>)</li>
+<li>微分する変数: <span class="math">\(y\)</span><br /> 偏導関数の値を <span class="math">\(1\)</span> とする (<span class="math">\(\frac{\partial y}{\partial y}=1\)</span>)</li>
 <li>各演算に中間変数名をふる<br /> <span class="math">\(c = x + a\)</span><br /> <span class="math">\(d = b \cdot x\)</span><br /> <span class="math">\(e = c \cdot d\)</span><br /> <span class="math">\(y = e\)</span></li>
-<li>導関数の値を覚えておく領域を <span class="math">\(S(v)\)</span> で参照する</li>
+<li>偏導関数の値を覚えておく領域を <span class="math">\(S(v)\)</span> で参照する</li>
 </ul>
 </section>
 <section id="例-211-トップダウン型" class="slide level1">
 <h1>例 2/11 | トップダウン型</h1>
 <ul>
-<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(c = 5, \hspace{1ex} d = 8, \hspace{1ex} e = 40\)</span><br /> <span class="math">\(y = 40\)</span></li>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(c = 5, \hspace{1ex} d = 8, \hspace{1ex} e = 40\)</span><br /> <span class="math">\(y = 40\)</span><br /> <span class="math">\(\frac{\partial c}{\partial x} = 1, \hspace{1ex} \frac{\partial c}{\partial a} = 1\)</span><br /> <span class="math">\(\frac{\partial d}{\partial b} = 2, \hspace{1ex} \frac{\partial d}{\partial x} = 4\)</span><br /> <span class="math">\(\frac{\partial e}{\partial c} = 8, \hspace{1ex} \frac{\partial e}{\partial d} = 5\)</span><br /> <span class="math">\(\frac{\partial y}{\partial e} = 1\)</span></li>
 <li>関数の値を全部計算</li>
+<li>直接つながっている偏導関数の値も全部計算</li>
 </ul>
 </section>
 <section id="例-311-トップダウン型" class="slide level1">
 <h1>例 3/11 | トップダウン型</h1>
 <ul>
 <li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) \leftarrow 1\)</span><br /> <span class="math">\(S(a), ..., S(e) \leftarrow 0\)</span></li>
-<li>導関数の値を初期化</li>
+<li>偏導関数の値を初期化</li>
 </ul>
 </section>
 <section id="例-411-トップダウン型" class="slide level1">
@@ -707,12 +710,11 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <section id="まとめ-トップダウン型" class="slide level1">
 <h1>まとめ | トップダウン型</h1>
 <ul>
-<li>多変数関数の偏導関数がぜんぶ求まる</li>
+<li>多変数関数の偏導関数の値が全部求まる</li>
 <li>入力変数→多, 出力変数→少 というケースで有効
 <ul>
 <li>だいたいこれに当てはまると思う</li>
 </ul></li>
-<li>べんり</li>
 <li>実装はちょっとめんどくさそう</li>
 </ul>
 </section>
@@ -733,7 +735,8 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <h1>Adept の紹介</h1>
 <ul>
 <li>http://www.met.rdg.ac.uk/clouds/adept/</li>
-<li>あでぷと<sup>[要出典]</sup></li>
+<li>rjhoganさん作</li>
+<li>Apache V2.0 / ESA Software Community License</li>
 <li><ruby>自動微分<rt>automatic differentiation</rt></ruby> を求めるライブラリ
 <ul>
 <li>主にトップダウン型自動微分</li>
@@ -797,7 +800,7 @@ ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <
 <li>なんかうまくいかない &gt;&lt;
 <ul>
 <li>関数が足りない <code>ceil</code>, <code>floor</code></li>
-<li>numeric_limits</li>
+<li><code>numeric_limits</code></li>
 <li>ETが邪魔 <code>T( ( cond ) ? z : -z )</code></li>
 </ul></li>
 <li>結局断念 ;;</li>
@@ -905,7 +908,7 @@ std::vector&lt; T &gt; simulate( <span class="dt">const</span> std::vector&lt; T
 <section id="軌道を求める-adept-x-odeint-2" class="slide level1">
 <h1>軌道を求める | Adept x Odeint</h1>
 <ul>
-<li>普通に出ている</li>
+<li>それっぽく動いている</li>
 </ul>
 <p><img src="resource/ad_ode.sim.png" style="display: block; margin: 0 auto;" height="380px" /></p>
 <ul>
@@ -1056,8 +1059,8 @@ T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
 <section id="感想" class="slide level1">
 <h1>感想</h1>
 <ul>
-<li>自動微分はべんり</li>
-<li>組み合わせるとそれぞれ地雷がある</li>
+<li>微分はシステマティックでかっこいい</li>
+<li>ライブラリを組み合わせるとそれぞれ地雷がある</li>
 <li>もうちょっと図示しやすい例にすればよかった</li>
 </ul>
 </section>

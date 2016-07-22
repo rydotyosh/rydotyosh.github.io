@@ -65,7 +65,7 @@ https://en.wikipedia.org/wiki/Derivative
 - 多変数関数 $f(x_0, ..., x_n)$ のときに
   1つの変数 $x_i$ を選んで変化させ
   他の変数は固定する
-- <ruby>勾配<rt>gradient</rt></ruby> は各変数での偏導関数を並べたもの
+- <ruby>勾配<rt>gradient</rt></ruby> は各変数で偏微分したものを並べたもの
 
 <img src="resource/Gradient_Visual.svg.png" style="display: block; margin: 0 auto;"  height="280px" />
 
@@ -74,23 +74,16 @@ http://en.wikipedia.org/wiki/Gradient
 </div>
 
 
-# 微分, 導関数
-
-- <ruby>微分<rt>differentiation</rt></ruby>:
-  元の関数 $f$ から 傾きを表す関数 $\frac{df}{dx}$ を求める操作
-- <ruby>導関数<rt>derivative</rt></ruby>:
-  元の関数 $f$ の傾きを表す関数 $\frac{df}{dx}$
-
-
 # 利用場面
 
-- シミュレーション, 最適化, 機械学習, ..., etc.
+- シミュレーション
+  モデルを微分方程式で表して
+  これを解くことで現象を予測する
+- 最適化, 機械学習
   ある点にいるときに勾配を求めて
   誤差が少ないほうに進む
-- モデルを表す関数を書いたら
-  導関数はコンピュータで自動的に求めてほしい
 
-<img src="resource/opti.png" style="display: block; margin: 0 auto;" height="350px" />
+<img src="resource/opti.png" style="display: block; margin: 0 auto;" height="300px" />
 
 
 # コンピュータで計算する微分
@@ -105,6 +98,14 @@ http://en.wikipedia.org/wiki/Gradient
   数式微分と数値微分の中間的な方法
   関数の値と導関数の値を求める
   合成関数の微分規則を使う
+
+
+# 微分, 導関数
+
+- <ruby>微分<rt>differentiation</rt></ruby>:
+  元の関数 $f$ から 傾きを表す関数 $\frac{df}{dx}$ を求める操作
+- <ruby>導関数<rt>derivative</rt></ruby>:
+  元の関数 $f$ の傾きを表す関数 $\frac{df}{dx}$
 
 
 # 微分の記法
@@ -195,7 +196,7 @@ $$
 
 - 合成関数の計算過程を表した <ruby>閉路のない有向グラフ<rt>directed acyclic graph</rt></ruby>
 - 下から上に向かって計算が進む
-- 変数・定数は節, 引数は辺 に対応
+- 変数・関数・定数は<ruby>節<rt>node</rt></ruby>, 引数は<ruby>辺<rt>edge</rt></ruby> に対応
 - 例 $y = (x+3) \cdot (4 \cdot x)$
 
 <img src="resource/fig1.png" style="display: block; margin: 0 auto;" height="280px" />
@@ -294,6 +295,7 @@ else
 - 関数の値と導関数の値を同時に計算していく
 - 最終的に関数の値と
   指定した変数での導関数の値が求まる
+- $\frac{\partial v}{\partial x}=\frac{\partial v}{\partial a} \cdot \frac{\partial a}{\partial x} + \frac{\partial v}{\partial b} \cdot \frac{\partial b}{\partial x} + \frac{\partial v}{\partial c} \cdot \frac{\partial c}{\partial x}$
 
 <img src="resource/bu01.png" style="display: block; margin: 0 auto;" height="280px" />
 
@@ -467,6 +469,7 @@ int main() {
 - 関数の値を求め終わったら計算過程を逆にたどる
 - 最終的に関数の値と
   すべての変数での偏導関数の値が求まる
+- $\frac{\partial f}{\partial v} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial v} + \frac{\partial f}{\partial b} \cdot \frac{\partial b}{\partial v} + \frac{\partial f}{\partial c} \cdot \frac{\partial c}{\partial v}$
 
 <img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" />
 
@@ -474,9 +477,9 @@ int main() {
 # 概要 3/3 | トップダウン型
 
 - 下図で $v$ はどこで何個使われているかは分からない
-- $\frac{\partial f}{\partial v}$ は横に並んでいるので和を取ればよい
 - 各変数 $v_i$ に $\frac{\partial f}{\partial v_i}$ を覚えておく領域をとっておき
   $v_i$ が使われたらその領域に加算する
+- $\frac{\partial f}{\partial v} = \frac{\partial f}{\partial a} \cdot \frac{\partial a}{\partial v} + \frac{\partial f}{\partial b} \cdot \frac{\partial b}{\partial v} + \frac{\partial f}{\partial c} \cdot \frac{\partial c}{\partial v}$
 
 <img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" />
 
@@ -495,13 +498,13 @@ int main() {
 - $y = (x+a) \cdot (b \cdot x)$
   $x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4$
 - 微分する変数: $y$
-  導関数の値を $1$ とする ($\frac{\partial y}{\partial y}=1$)
+  偏導関数の値を $1$ とする ($\frac{\partial y}{\partial y}=1$)
 - 各演算に中間変数名をふる
   $c = x + a$
   $d = b \cdot x$
   $e = c \cdot d$
   $y = e$
-- 導関数の値を覚えておく領域を $S(v)$ で参照する
+- 偏導関数の値を覚えておく領域を $S(v)$ で参照する
 
 
 # 例 2/11 | トップダウン型
@@ -510,7 +513,12 @@ int main() {
   $x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4$
   $c = 5, \hspace{1ex} d = 8, \hspace{1ex} e = 40$
   $y = 40$
+  $\frac{\partial c}{\partial x} = 1, \hspace{1ex} \frac{\partial c}{\partial a} = 1$
+  $\frac{\partial d}{\partial b} = 2, \hspace{1ex} \frac{\partial d}{\partial x} = 4$
+  $\frac{\partial e}{\partial c} = 8, \hspace{1ex} \frac{\partial e}{\partial d} = 5$
+  $\frac{\partial y}{\partial e} = 1$
 - 関数の値を全部計算
+- 直接つながっている偏導関数の値も全部計算
 
 
 # 例 3/11 | トップダウン型
@@ -519,7 +527,7 @@ int main() {
   $x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4$
   $S(y) \leftarrow 1$
   $S(a), ..., S(e) \leftarrow 0$
-- 導関数の値を初期化
+- 偏導関数の値を初期化
 
 
 # 例 4/11 | トップダウン型
@@ -621,10 +629,9 @@ int main() {
 
 # まとめ | トップダウン型
 
-- 多変数関数の偏導関数がぜんぶ求まる
+- 多変数関数の偏導関数の値が全部求まる
 - 入力変数→多, 出力変数→少 というケースで有効
     - だいたいこれに当てはまると思う
-- べんり
 - 実装はちょっとめんどくさそう
 
 
@@ -641,7 +648,8 @@ int main() {
 # Adept の紹介
 
 - http://www.met.rdg.ac.uk/clouds/adept/
-- あでぷと<sup>[要出典]</sup>
+- rjhoganさん作
+- Apache V2.0 / ESA Software Community License
 - <ruby>自動微分<rt>automatic differentiation</rt></ruby> を求めるライブラリ
     - 主にトップダウン型自動微分
 - コードが短い (3000行ぐらい)
@@ -703,7 +711,7 @@ int main() {
 
 - なんかうまくいかない ><
     - 関数が足りない `ceil`, `floor`
-    - numeric_limits
+    - `numeric_limits`
     - ETが邪魔 `T( ( cond ) ? z : -z )`
 - 結局断念 ;;
 
@@ -822,7 +830,7 @@ int main() {
 
 # 軌道を求める | Adept x Odeint
 
-- 普通に出ている
+- それっぽく動いている
 
 <img src="resource/ad_ode.sim.png" style="display: block; margin: 0 auto;" height="380px" />
 
@@ -969,6 +977,7 @@ struct adam {
 - あっている
 - よかった
 
+
 # 誤差の推移 | Adept x Odeint
 
 - 5000回ぐらいで既にそこそこ収束してるっぽい
@@ -978,8 +987,8 @@ struct adam {
 
 # 感想
 
-- 自動微分はべんり
-- 組み合わせるとそれぞれ地雷がある
+- 微分はシステマティックでかっこいい
+- ライブラリを組み合わせるとそれぞれ地雷がある
 - もうちょっと図示しやすい例にすればよかった
 
 
