@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+  <meta name="author" content="@rydotyosh / Ryogo Yoshimura" />
+  <title>自動微分で遊ぼう</title>
+  <style type="text/css">
+    code {
+      white-space: pre;
+      font-family: Monaco, monospace;
+      font-size: 75%;
+      letter-spacing: -0.5px;
+    }
+    pre.sourceCode {
+      padding: 2px 10px 2px 10px;
+      border-style: solid;
+      border-width: 1px;
+      border-color: gray;
+      margin: 5px 50px 5px 50px;
+      font-size: 90%;
+      line-height: 108%;
+    }
+  </style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+<style>
+  html { background-color: #224455; }
+  body { background-color: white; border-radius: 12px}
+  /* A section is a slide. It's size is 800x600, and this will never change */
+  section {
+      font-family: sans-serif;
+      font-size: 22pt;
+      line-height: 130%;
+    }
+  address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 3px 50px 3px 50px; }
+  h1 {
+    text-align: right;
+    margin: 10pt 10pt 0pt 10pt;
+  }
+  h2, h3 {
+    text-align: right;
+    margin: 2pt 10pt 2pt 10pt;
+  }
+  ul, ol {
+    margin: 3px 10px 3px 20px;
+  }
+  section.titleslide h1 { margin-top: 200px; }
+  h1.title { margin-top: 150px; }
+  h1 { font-size: 130%; }
+  h2 { font-size: 120%; }
+  h3 { font-size: 110%; }
+  q { quotes: "“" "”" "‘" "’"; }
+  blockquote { font-style: italic }
+  /* Figures are displayed full-page, with the caption on
+     top of the image/video */
+  figure {
+    background-color: black;
+  }
+  figcaption {
+    margin: 70px;
+  }
+  footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 40px;
+    text-align: right;
+    background-color: #F3F4F8;
+    border-top: 1px solid #CCC;
+  }
+
+  /* Transition effect */
+  /* Feel free to change the transition effect for original
+     animations. See here:
+     https://developer.mozilla.org/en/CSS/CSS_transitions
+     How to use CSS3 Transitions: */
+  section {
+      -moz-transition: left 0ms linear 0s;
+      -webkit-transition: left 0ms linear 0s;
+      -ms-transition: left 0ms linear 0s;
+      transition: left 0ms linear 0s;
+  }
+
+  /* Before */
+  section { left: -150%; }
+  /* Now */
+  section[aria-selected] { left: 0; }
+  /* After */
+  section[aria-selected] ~ section { left: +150%; }
+
+  /* Incremental elements */
+
+  /* By default, visible */
+  .incremental > * { opacity: 1; }
+
+  /* The current item */
+  .incremental > *[aria-selected] { color: #224499; opacity: 1; }
+
+  /* The items to-be-selected */
+  .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+
+  .center_img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cite {
+    font-size: 50%;
+    text-align: right;
+    text-decoration: underline;
+  }
+
+  table {
+    margin-left: auto;
+    margin-right: auto;    
+  }
+  th, td {
+    padding: 0px 20px 0px 20px;
+  }
+
+  rt {
+    margin-bottom: -1ex;
+  }
+
+  span.mathbg-r {
+    background-color: #f8d8d0;
+    border-radius: 0.2ex;
+  }
+  span.mathbg-g {
+    background-color: #d8f8d0;
+    border-radius: 0.2ex;
+  }
+  span.mathbg-b {
+    background-color: #d8d0f8;
+    border-radius: 0.2ex;
+  }
+  span.mathbg-c {
+    background-color: #d0f0f8;
+    border-radius: 0.2ex;
+  }
+  span.mathbg-y {
+    background-color: #f8f0d0;
+    border-radius: 0.2ex;
+  }
+  span.mathbg-m {
+    background-color: #f8d0f0;
+    border-radius: 0.2ex;
+  }
+
+</style>
+<!-- MathJax customize -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": {
+      styles: {
+        ".MathJax_Display": {
+          margin:       "0em 0em"
+        }
+      }
+    },
+    "TeX": {
+      extensions: ["color.js"],
+    },
+    "displayAlign": "left"
+  });
+</script>
+  <script src="mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+</head>
+<body>
+<section class="title">
+  <h1 class="title">自動微分で遊ぼう</h1>
+  <h2 class="author"><span class="citation" data-cites="rydotyosh">@rydotyosh</span> / Ryogo Yoshimura</h2>
+  <h3 class="date">2016.07.23</h3>
+</section>
+<section id="自己紹介" class="slide level1">
+<h1>自己紹介</h1>
+<ul>
+<li>なまえ<br /> <span class="citation" data-cites="rydotyosh">@rydotyosh</span> <img src="resource/castela2.png" /> / Ryogo Yoshimura</li>
+<li>しゅみ<br /> 幾何学, 微分, プログラミング</li>
+<li>おしごと<br /> CAD/CAM やさん</li>
+</ul>
+</section>
+<section id="cadcam" class="slide level1">
+<h1>CAD/CAM</h1>
+<ul>
+<li><ruby>CAD<rt>computer aided design</rt></ruby>: 機械部品とかをモデリングする</li>
+<li><ruby>CAM<rt>computer aided machining</rt></ruby>: 工作機械の最適な動作を計算する</li>
+<li>曲面とか曲線とか微分とか出てくる</li>
+</ul>
+<p><img src="resource/koukouritu1_s.jpg" width="48%" /> <img src="resource/v3_3d_touara_1.gif" width="48%" /></p>
+<div class="cite">
+<p>https://www.cgsys.co.jp/g/products/CAM-TOOL/3dcam_cl.htm</p>
+</div>
+</section>
+<section id="自動微分とは" class="slide level1">
+<h1>自動微分とは</h1>
+<ul>
+<li>プログラムで書かれた関数から<br /> 合成関数の微分規則を使って<br /> 導関数の値を求める方法</li>
+<li><code>#</code>とは</li>
+</ul>
+</section>
+<section id="もくじ" class="slide level1">
+<h1>もくじ</h1>
+<ul>
+<li>微分
+<ul>
+<li>合成関数の微分</li>
+</ul></li>
+<li>プログラムで書かれた関数</li>
+<li>自動微分
+<ul>
+<li>ボトムアップ型自動微分</li>
+<li>トップダウン型自動微分</li>
+</ul></li>
+<li>Adept の紹介</li>
+<li>Boost と組み合わせてみる</li>
+<li>感想</li>
+</ul>
+</section>
+<section id="微分" class="slide level1">
+<h1>微分</h1>
+<ul>
+<li>関数 <span class="math">\(f(x)\)</span> の入力 <span class="math">\(x\)</span> を少し変えたときに<br /> 出力がどれぐらい変わるか</li>
+<li><ruby>傾き<rt>slope</rt></ruby> <span class="math">\(\frac{df}{dx} = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}\)</span></li>
+</ul>
+<p><img src="resource/800px-Secant-calculus.svg.png" width="48%" /> <img src="resource/800px-Tangent-calculus.svg.png" width="48%" /></p>
+<div class="cite">
+<p>https://en.wikipedia.org/wiki/Derivative</p>
+</div>
+</section>
+<section id="偏微分" class="slide level1">
+<h1>偏微分</h1>
+<ul>
+<li>多変数関数 <span class="math">\(f(x_0, ..., x_n)\)</span> のときに<br /> 1つの変数 <span class="math">\(x_i\)</span> を選んで変化させ<br /> 他の変数は固定する</li>
+<li><ruby>勾配<rt>gradient</rt></ruby> は各変数での偏導関数を並べたもの</li>
+</ul>
+<p><img src="resource/Gradient_Visual.svg.png" style="display: block; margin: 0 auto;"  height="280px" /></p>
+<div class="cite">
+<p>http://en.wikipedia.org/wiki/Gradient</p>
+</div>
+</section>
+<section id="微分-導関数" class="slide level1">
+<h1>微分, 導関数</h1>
+<ul>
+<li><ruby>微分<rt>differentiation</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> から 傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span> を求める操作</li>
+<li><ruby>導関数<rt>derivative</rt></ruby>:<br /> 元の関数 <span class="math">\(f\)</span> の傾きを表す関数 <span class="math">\(\frac{df}{dx}\)</span></li>
+</ul>
+</section>
+<section id="利用場面" class="slide level1">
+<h1>利用場面</h1>
+<ul>
+<li>シミュレーション, 最適化, 機械学習, ..., etc.<br /> ある点にいるときに勾配を求めて<br /> 誤差が少ないほうに進む</li>
+<li>モデルを表す関数を書いたら<br /> 導関数はコンピュータで自動的に求めてほしい</li>
+</ul>
+<p><img src="resource/opti.png" style="display: block; margin: 0 auto;" height="350px" /></p>
+</section>
+<section id="コンピュータで計算する微分" class="slide level1">
+<h1>コンピュータで計算する微分</h1>
+<ul>
+<li><ruby>数式微分<rt>symbolic differentiation</rt></ruby><br /> 関数に数式処理をして導関数を求める<br /> 計算に比較的時間がかかる</li>
+<li><ruby>数値微分<rt>numerical differentiation</rt></ruby><br /> 関数の値を数値的に求めて導関数の値を近似する<br /> 浮動小数点誤差の影響が大きい</li>
+<li><ruby>自動微分<rt>automatic differentiation</rt></ruby><br /> 数式微分と数値微分の中間的な方法<br /> 関数の値と導関数の値を求める<br /> 合成関数の微分規則を使う</li>
+</ul>
+</section>
+<section id="微分の記法" class="slide level1">
+<h1>微分の記法</h1>
+<ul>
+<li>ラグランジュの記法<br /> <span class="math">\(f^\prime\)</span></li>
+<li>ライプニッツの記法<br /> <span class="math">\(\frac{df}{dx}\)</span><br /> <span class="math">\(\frac{\partial f}{\partial x}\)</span> (偏導関数)</li>
+<li>合成関数の微分規則を書くのにべんりなため<br /> 以降では主にライプニッツの記法(<span class="math">\(\frac{df}{dx}\)</span>)を使う</li>
+</ul>
+</section>
+<section id="合成関数" class="slide level1">
+<h1>合成関数</h1>
+<ul>
+<li><span class="math">\(f(g(x))\)</span></li>
+<li>例<br /> <span class="math">\(f(g)=g^2\)</span><br /> <span class="math">\(g(x)=x+3\)</span><br /> <span class="math">\(f(g(x)) = (x+3)^2\)</span></li>
+</ul>
+</section>
+<section id="合成関数の微分" class="slide level1">
+<h1>合成関数の微分</h1>
+<ul>
+<li><span class="math">\(f(g(x))\)</span><br /> <span class="math">\(\frac{df}{dx} = \frac{df}{dg} \cdot \frac{dg}{dx}\)</span></li>
+<li>それぞれの導関数の積になる</li>
+<li>見た目がすごく約分っぽい</li>
+<li>もっと合成すると積がつながっていく</li>
+<li><span class="math">\(f(g(h(x)))\)</span><br /> <span class="math">\(\frac{df}{dx} = \frac{df}{dg} \cdot \frac{dg}{dh} \cdot \frac{dh}{dx}\)</span></li>
+<li><ruby>連鎖律<rt>chain rule</rt></ruby>という</li>
+</ul>
+</section>
+<section id="例-合成関数の微分" class="slide level1">
+<h1>例 | 合成関数の微分</h1>
+<ul>
+<li><span class="math">\(f(g(x))\)</span><br /> <span class="math">\(\frac{df}{dx} = \frac{df}{dg} \cdot \frac{dg}{dx}\)</span></li>
+<li>例<br /><span class="math">\[
+\begin{array}{ll}
+  f(g)=g^2,                   &amp; \class{mathbg-r}{\frac{df}{dg}(g)=2g} \\
+  \class{mathbg-y}{g(x)=x+3}, &amp; \class{mathbg-g}{\frac{dg}{dx}(x)=1} \\
+\end{array} \\
+\begin{align}
+  \textstyle \frac{df}{dx}(x)
+&amp; = \textstyle \class{mathbg-r}{\frac{df}{dg}(\class{mathbg-y}{g(x)})} \cdot \class{mathbg-g}{\frac{dg}{dx}(x)} \\
+&amp; = \class{mathbg-r}{(2 \class{mathbg-y}{(x+3)})} \cdot \class{mathbg-g}{(1)} \\
+&amp; = 2x + 6 \\
+\end{align}
+\]</span></li>
+</ul>
+</section>
+<section id="多変数-合成関数の微分" class="slide level1">
+<h1>多変数 | 合成関数の微分</h1>
+<ul>
+<li><span class="math">\(f(g(x), h(x))\)</span><br /> <span class="math">\(\frac{df}{dx} = \frac{\partial f}{\partial g} \cdot \frac{dg}{dx} + \frac{\partial f}{\partial h} \cdot \frac{dh}{dx}\)</span></li>
+<li>偏導関数のそれぞれの変数について和になる</li>
+<li>変数の個所に代入されている関数について積になる</li>
+<li>もっと多変数でも同様</li>
+<li><span class="math">\(f(g(x, y), h(x, y), u(x, y))\)</span><br /> <span class="math">\(\frac{\partial f}{\partial x} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial x} + \frac{\partial f}{\partial h} \cdot \frac{\partial h}{\partial x} + \frac{\partial f}{\partial u} \cdot \frac{\partial u}{\partial x}\)</span><br /> <span class="math">\(\frac{\partial f}{\partial y} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial y} + \frac{\partial f}{\partial h} \cdot \frac{\partial h}{\partial y} + \frac{\partial f}{\partial u} \cdot \frac{\partial u}{\partial y}\)</span></li>
+</ul>
+</section>
+<section id="多変数の例-合成関数の微分" class="slide level1">
+<h1>多変数の例 | 合成関数の微分</h1>
+<ul>
+<li><span class="math">\(f(g(x), h(x))\)</span></li>
+<li>例<br /><span class="math">\[
+\begin{array}{ll}
+  f(g, h)=g \cdot h,                &amp; \class{mathbg-r}{\frac{\partial f}{\partial g}(g, h)=h},
+                                &amp; \class{mathbg-c}{\frac{\partial f}{\partial h}(g, h)=g} \\
+  \class{mathbg-y}{g(x)=x+3},       &amp; \class{mathbg-g}{\frac{dg}{dx}(x)=1} \\
+  \class{mathbg-b}{h(x)=4 \cdot x}, &amp; \class{mathbg-m}{\frac{dh}{dx}(x)=4} \\
+\end{array} \\
+\begin{align}
+  \textstyle \frac{df}{dx}(x)
+&amp; = \textstyle \class{mathbg-r}{\frac{\partial f}{\partial g}(\class{mathbg-y}{g(x)}, \class{mathbg-b}{h(x)})} \cdot \class{mathbg-g}{\frac{dg}{dx}(x)} + \\
+&amp; \hspace{3ex} \textstyle \class{mathbg-c}{\frac{\partial f}{\partial h}(\class{mathbg-y}{g(x)}, \class{mathbg-b}{h(x)})} \cdot \class{mathbg-m}{\frac{dh}{dx}(x)} \\
+&amp; = \class{mathbg-b}{(4 \cdot x)} \cdot \class{mathbg-g}{(1)} + \class{mathbg-y}{(x+3)} \cdot \class{mathbg-m}{(4)} \\
+&amp; = 8x + 12 \\
+\end{align}
+\]</span></li>
+</ul>
+</section>
+<section id="計算グラフ" class="slide level1">
+<h1>計算グラフ</h1>
+<ul>
+<li>合成関数の計算過程を表した <ruby>閉路のない有向グラフ<rt>directed acyclic graph</rt></ruby></li>
+<li>下から上に向かって計算が進む</li>
+<li>変数・定数は節, 引数は辺 に対応</li>
+<li>例 <span class="math">\(y = (x+3) \cdot (4 \cdot x)\)</span></li>
+</ul>
+<p><img src="resource/fig1.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="微分-計算グラフ" class="slide level1">
+<h1>微分 | 計算グラフ</h1>
+<ul>
+<li><span class="math">\(f(g(x))\)</span> とその導関数</li>
+<li>縦につながっているものは積で計算<br /> <span class="math">\(\frac{df}{dx} = \frac{df}{dg} \cdot \frac{dg}{dx}\)</span></li>
+<li>鎖線は導関数を計算したもので<br /> 直接つながっているわけではない</li>
+</ul>
+<p><img src="resource/cal1.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="多変数-計算グラフ" class="slide level1">
+<h1>多変数 | 計算グラフ</h1>
+<ul>
+<li><span class="math">\(f(g(x),h(x))\)</span> とその導関数</li>
+<li>縦につながっているものは積で計算</li>
+<li>横に並んでいるものは和で計算<br /> <span class="math">\(\frac{df}{dx} = \frac{\partial f}{\partial g} \cdot \frac{dg}{dx} + \frac{\partial f}{\partial h} \cdot \frac{dh}{dx}\)</span></li>
+</ul>
+<p><img src="resource/cal2.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="プログラムで書かれた関数" class="slide level1">
+<h1>プログラムで書かれた関数</h1>
+<ul>
+<li>入力に対して出力が決まる</li>
+<li>以降では <code>double</code> の配列(的なもの)を<br /> 入出力と考える</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">std::vector&lt;<span class="dt">double</span>&gt; f(
+    <span class="dt">const</span> std::vector&lt;<span class="dt">double</span>&gt; &amp;x );</code></pre>
+<ul>
+<li>四則演算 ( <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> )</li>
+<li>初等関数 ( <code>exp</code>, <code>sin</code>, <code>cos</code>, ... )
+<ul>
+<li>微分できる関数を<br /> 1つの単位として扱ってもよい</li>
+</ul></li>
+<li>条件演算子/制御文 ( <code>?:</code>, <code>if</code>, <code>for</code>, ... )</li>
+<li>再代入</li>
+</ul>
+</section>
+<section id="制御文-プログラムで書かれた関数" class="slide level1">
+<h1>制御文 | プログラムで書かれた関数</h1>
+<ul>
+<li>制御文があると<br /> 場合によって計算過程が変わる</li>
+<li>実際に通った計算過程をもとに微分する</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">if</span> ( x &gt; <span class="dv">0</span> )
+  y = x;
+<span class="kw">else</span>
+  y = -x;</code></pre>
+<ul>
+<li>上の例は <code>&gt;</code> にするか <code>&gt;=</code> にするかで<br /> <code>x == 0</code> のときの <code>y</code> の値は同じだが<br /> 導関数の値は異なってくる</li>
+</ul>
+</section>
+<section id="再代入-プログラムで書かれた関数" class="slide level1">
+<h1>再代入 | プログラムで書かれた関数</h1>
+<ul>
+<li>再代入は計算過程上では別の変数と考える</li>
+<li>実際にはメモリ上に保存しておかなくて<br /> よい場合もある</li>
+<li><strike><code>const</code>教では背信行為</strike></li>
+</ul>
+</section>
+<section id="自動微分" class="slide level1">
+<h1>自動微分</h1>
+<ul>
+<li>プログラムで書かれた関数を<br /> 四則演算, 初等関数 を合成した関数とみなす</li>
+<li>合成関数の微分を適用</li>
+<li>自動微分用の型を作り<br /> 四則演算, 初等関数 をオーバーロード</li>
+<li>2種類の方法
+<ul>
+<li>ボトムアップ型自動微分</li>
+<li>トップダウン型自動微分</li>
+</ul></li>
+</ul>
+</section>
+<section id="概要-12-ボトムアップ型" class="slide level1">
+<h1>概要 1/2 | ボトムアップ型</h1>
+<ul>
+<li>計算グラフを下からたどるのでボトムアップ
+<ul>
+<li><span class="math">\(f(g(h(x)))\)</span> があったときに<br /> <span class="math">\(\frac{dh}{dx}\)</span>, <span class="math">\(\frac{dg}{dx}\)</span>, <span class="math">\(\frac{df}{dx}\)</span> と順に求まるイメージ</li>
+</ul></li>
+</ul>
+<p><img src="resource/bu0.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="概要-22-ボトムアップ型" class="slide level1">
+<h1>概要 2/2 | ボトムアップ型</h1>
+<ul>
+<li>微分する入力変数を1個指定する</li>
+<li>関数の値と導関数の値を同時に計算していく</li>
+<li>最終的に関数の値と<br /> 指定した変数での導関数の値が求まる</li>
+</ul>
+<p><img src="resource/bu01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="オーバーロード-ボトムアップ型" class="slide level1">
+<h1>オーバーロード | ボトムアップ型</h1>
+<ul>
+<li>関数の値と導関数の値を <span class="math">\([ f, \frac{df}{dx} ]\)</span> と括弧表記する</li>
+<li>和 <span class="math">\([ f, \frac{df}{dx} ] + [ g, \frac{dg}{dx} ] = [ f + g, \frac{df}{dx} + \frac{dg}{dx} ]\)</span></li>
+<li>積 <span class="math">\([ f, \frac{df}{dx} ] \cdot [ g, \frac{dg}{dx} ] = [ f \cdot g, g \cdot \frac{df}{dx} + f \cdot \frac{dg}{dx} ]\)</span></li>
+</ul>
+</section>
+<section id="計算グラフ-ボトムアップ型" class="slide level1">
+<h1>計算グラフ | ボトムアップ型</h1>
+<ul>
+<li>例<br /> <span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span></li>
+</ul>
+<p><img src="resource/bu1.png" style="display: block; margin: 0 auto;" height="350px" /></p>
+</section>
+<section id="例-16-ボトムアップ型" class="slide level1">
+<h1>例 1/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span></li>
+<li>微分する変数: <span class="math">\(x\)</span><br /> 導関数の値は <span class="math">\(1\)</span><br /> <span class="math">\(x \to [2,1]\)</span></li>
+<li>定数: <span class="math">\(a\)</span>, <span class="math">\(b\)</span><br /> 導関数の値は <span class="math">\(0\)</span><br /> <span class="math">\(a \to [3,0]\)</span>, <span class="math">\(b \to [4,0]\)</span></li>
+</ul>
+</section>
+<section id="例-26-ボトムアップ型" class="slide level1">
+<h1>例 2/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (\class{mathbg-r}{x}+\class{mathbg-g}{a}) \cdot (\class{mathbg-y}{b} \cdot \class{mathbg-r}{x})\)</span><br /> <span class="math">\(\class{mathbg-r}{x = 2}, \hspace{1ex} \class{mathbg-g}{a = 3}, \hspace{1ex} \class{mathbg-y}{b = 4}\)</span><br /> <span class="math">\(\class{mathbg-r}{x \to [2,1]}, \hspace{1ex} \class{mathbg-g}{a \to [3,0]}, \hspace{1ex} \class{mathbg-y}{b \to [4,0]}\)</span><br /><span class="math">\[
+\begin{align}
+  \textstyle [y, \frac{dy}{dx}]
+&amp; = (\class{mathbg-r}{[2,1]}+\class{mathbg-g}{[3,0]}) \cdot (\class{mathbg-y}{[4,0]}\cdot\class{mathbg-r}{[2,1]}) \\
+\end{align}
+\]</span></li>
+<li>関数の値と導関数の値を代入</li>
+</ul>
+</section>
+<section id="例-36-ボトムアップ型" class="slide level1">
+<h1>例 3/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /><span class="math">\[
+\begin{align}
+  \textstyle [y, \frac{dy}{dx}]
+&amp; = ([\class{mathbg-r}{2},\class{mathbg-y}{1}]+[\class{mathbg-b}{3},\class{mathbg-g}{0}]) \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [\class{mathbg-r}{2}+\class{mathbg-b}{3},\class{mathbg-y}{1}+\class{mathbg-g}{0}] \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [5,1] \cdot ([4,0]\cdot[2,1]) \\
+\end{align}
+\]</span></li>
+<li>和を適用<br /> <span class="math">\([ \class{mathbg-r}{f}, \class{mathbg-y}{\frac{df}{dx}} ] + [ \class{mathbg-b}{g}, \class{mathbg-g}{\frac{dg}{dx}} ] = [ \class{mathbg-r}{f} + \class{mathbg-b}{g}, \class{mathbg-y}{\frac{df}{dx}} + \class{mathbg-g}{\frac{dg}{dx}} ]\)</span></li>
+</ul>
+</section>
+<section id="例-46-ボトムアップ型" class="slide level1">
+<h1>例 4/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /><span class="math">\[
+\begin{align}
+  \textstyle [y, \frac{dy}{dx}]
+&amp; = ([2,1]+[3,0]) \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [5,1] \cdot ([\class{mathbg-r}{4},\class{mathbg-y}{0}]\cdot[\class{mathbg-b}{2},\class{mathbg-g}{1}]) \\
+&amp; = [5,1] \cdot [\class{mathbg-r}{4} \cdot \class{mathbg-b}{2}, \class{mathbg-b}{2} \cdot \class{mathbg-y}{0} + \class{mathbg-r}{4} \cdot \class{mathbg-g}{1}] \\
+&amp; = [5,1] \cdot [8,4] \\
+\end{align}
+\]</span></li>
+<li>積を適用<br /> <span class="math">\([ \class{mathbg-r}{f}, \class{mathbg-y}{\frac{df}{dx}} ] \cdot [ \class{mathbg-b}{g}, \class{mathbg-g}{\frac{dg}{dx}} ] = [ \class{mathbg-r}{f} \cdot \class{mathbg-b}{g}, \class{mathbg-b}{g} \cdot \class{mathbg-y}{\frac{df}{dx}} + \class{mathbg-r}{f} \cdot \class{mathbg-g}{\frac{dg}{dx}} ]\)</span></li>
+</ul>
+</section>
+<section id="例-56-ボトムアップ型" class="slide level1">
+<h1>例 5/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /><span class="math">\[
+\begin{align}
+  \textstyle [y, \frac{dy}{dx}]
+&amp; = ([2,1]+[3,0]) \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [5,1] \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [\class{mathbg-r}{5},\class{mathbg-y}{1}] \cdot [\class{mathbg-b}{8},\class{mathbg-g}{4}] \\
+&amp; = [\class{mathbg-r}{5} \cdot \class{mathbg-b}{8}, \class{mathbg-b}{8} \cdot \class{mathbg-y}{1} + \class{mathbg-r}{5} \cdot \class{mathbg-g}{4}] \\
+&amp; = [40,28] \\
+\end{align}
+\]</span></li>
+<li>積を適用<br /> <span class="math">\([ \class{mathbg-r}{f}, \class{mathbg-y}{\frac{df}{dx}} ] \cdot [ \class{mathbg-b}{g}, \class{mathbg-g}{\frac{dg}{dx}} ] = [ \class{mathbg-r}{f} \cdot \class{mathbg-b}{g}, \class{mathbg-b}{g} \cdot \class{mathbg-y}{\frac{df}{dx}} + \class{mathbg-r}{f} \cdot \class{mathbg-g}{\frac{dg}{dx}} ]\)</span></li>
+</ul>
+</section>
+<section id="例-66-ボトムアップ型" class="slide level1">
+<h1>例 6/6 | ボトムアップ型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /><span class="math">\[
+\begin{align}
+  \textstyle [y, \frac{dy}{dx}]
+&amp; = ([2,1]+[3,0]) \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [5,1] \cdot ([4,0]\cdot[2,1]) \\
+&amp; = [5,1] \cdot [8,4] \\
+&amp; = [40,28] \\
+\end{align}
+\]</span></li>
+<li>できあがり</li>
+<li>cf. <span class="math">\(\frac{dy}{dx}=8x+12=28\)</span></li>
+</ul>
+</section>
+<section id="実装例-ボトムアップ型" class="slide level1">
+<h1>実装例 | ボトムアップ型</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">struct</span> ad { <span class="dt">double</span> x, dx; };
+ad <span class="kw">operator</span>+( <span class="dt">const</span> ad &amp;f, <span class="dt">const</span> ad &amp;g ) {
+  <span class="kw">return</span> ad{ f.x + g.x, f.dx + g.dx };
+}
+ad <span class="kw">operator</span>*( <span class="dt">const</span> ad &amp;f, <span class="dt">const</span> ad &amp;g ) {
+  <span class="kw">return</span> ad{ f.x * g.x, g.x * f.dx + f.x * g.dx };
+}
+<span class="dt">int</span> main() {
+  ad x{ <span class="dv">2</span>, <span class="dv">1</span> }, a{ <span class="dv">3</span>, <span class="dv">0</span> }, b{ <span class="dv">4</span>, <span class="dv">0</span> };
+  ad y = ( x + a ) * ( b * x );
+  std::cout &lt;&lt; y.x &lt;&lt; <span class="st">&quot;,&quot;</span> &lt;&lt;
+               y.dx &lt;&lt; std::endl;
+}
+<span class="co">// --&gt; 40,28</span></code></pre>
+</section>
+<section id="変数まとめ-ボトムアップ型" class="slide level1">
+<h1>1変数まとめ | ボトムアップ型</h1>
+<ul>
+<li>1変数の場合はすごくかんたん<br /> あとは対応するオーバーロードを増やすだけ</li>
+<li>多変数の場合?</li>
+</ul>
+</section>
+<section id="多変数-ボトムアップ型" class="slide level1">
+<h1>多変数 | ボトムアップ型</h1>
+<ul>
+<li>多変数の場合 <span class="math">\(f(x_0, x_1, ..., x_n)\)</span></li>
+<li>それぞれの変数で偏導関数の値を <span class="math">\(1\)</span> にして毎回計算する<br /> <span class="math">\([f, \frac{\partial f}{\partial x_0}], [f, \frac{\partial f}{\partial x_1}], ..., [f, \frac{\partial f}{\partial x_n}]\)</span></li>
+<li>もしくは偏導関数の値を並べて同時に計算する<br /> <span class="math">\([f, \frac{\partial f}{\partial x_0}, \frac{\partial f}{\partial x_1}, ..., \frac{\partial f}{\partial x_n}]\)</span></li>
+<li>どちらも無駄な計算が多い</li>
+<li>入力変数→少, 出力変数→多 というケースでは有効
+<ul>
+<li>あんまりそういうケースはない?</li>
+</ul></li>
+<li>そこでトップダウン型自動微分</li>
+</ul>
+</section>
+<section id="概要-13-トップダウン型" class="slide level1">
+<h1>概要 1/3 | トップダウン型</h1>
+<ul>
+<li>計算グラフを上からたどるのでトップダウン
+<ul>
+<li><span class="math">\(f(g(h(x)))\)</span> があったときに<br /> <span class="math">\(\frac{df}{dg}\)</span>, <span class="math">\(\frac{df}{dh}\)</span>, <span class="math">\(\frac{df}{dx}\)</span> の順 (左下図)</li>
+<li>cf. ボトムアップの場合は<br /> <span class="math">\(\frac{dh}{dx}\)</span>, <span class="math">\(\frac{dg}{dx}\)</span>, <span class="math">\(\frac{df}{dx}\)</span> の順 (右下図)</li>
+</ul></li>
+</ul>
+<p><span style="display: block; margin: 0 auto; text-align:center;"><img src="resource/td0.png" height="280px" /> <img src="resource/bu0.png" height="280px" /></span></p>
+</section>
+<section id="概要-23-トップダウン型" class="slide level1">
+<h1>概要 2/3 | トップダウン型</h1>
+<ul>
+<li>微分する出力変数を1個指定する</li>
+<li>計算過程を全部覚えておく</li>
+<li>関数の値を求め終わったら計算過程を逆にたどる</li>
+<li>最終的に関数の値と<br /> すべての変数での偏導関数の値が求まる</li>
+</ul>
+<p><img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="概要-33-トップダウン型" class="slide level1">
+<h1>概要 3/3 | トップダウン型</h1>
+<ul>
+<li>下図で <span class="math">\(v\)</span> はどこで何個使われているかは分からない</li>
+<li><span class="math">\(\frac{\partial f}{\partial v}\)</span> は横に並んでいるので和を取ればよい</li>
+<li>各変数 <span class="math">\(v_i\)</span> に <span class="math">\(\frac{\partial f}{\partial v_i}\)</span> を覚えておく領域をとっておき<br /> <span class="math">\(v_i\)</span> が使われたらその領域に加算する</li>
+</ul>
+<p><img src="resource/td01.png" style="display: block; margin: 0 auto;" height="280px" /></p>
+</section>
+<section id="計算グラフ-トップダウン型" class="slide level1">
+<h1>計算グラフ | トップダウン型</h1>
+<ul>
+<li>例<br /> <span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span></li>
+</ul>
+<p><img src="resource/td1.png" style="display: block; margin: 0 auto;" height="350px" /></p>
+</section>
+<section id="例-111-トップダウン型" class="slide level1">
+<h1>例 1/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span></li>
+<li>微分する変数: <span class="math">\(y\)</span><br /> 導関数の値を <span class="math">\(1\)</span> とする (<span class="math">\(\frac{\partial y}{\partial y}=1\)</span>)</li>
+<li>各演算に中間変数名をふる<br /> <span class="math">\(c = x + a\)</span><br /> <span class="math">\(d = b \cdot x\)</span><br /> <span class="math">\(e = c \cdot d\)</span><br /> <span class="math">\(y = e\)</span></li>
+<li>導関数の値を覚えておく領域を <span class="math">\(S(v)\)</span> で参照する</li>
+</ul>
+</section>
+<section id="例-211-トップダウン型" class="slide level1">
+<h1>例 2/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(c = 5, \hspace{1ex} d = 8, \hspace{1ex} e = 40\)</span><br /> <span class="math">\(y = 40\)</span></li>
+<li>関数の値を全部計算</li>
+</ul>
+</section>
+<section id="例-311-トップダウン型" class="slide level1">
+<h1>例 3/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) \leftarrow 1\)</span><br /> <span class="math">\(S(a), ..., S(e) \leftarrow 0\)</span></li>
+<li>導関数の値を初期化</li>
+</ul>
+</section>
+<section id="例-411-トップダウン型" class="slide level1">
+<h1>例 4/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) \leftarrow S(e) + S(y) \cdot \frac{\partial y}{\partial e} = 0 + 1 \cdot 1 = 1\)</span></li>
+<li><span class="math">\(e \leftarrow y\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-511-トップダウン型" class="slide level1">
+<h1>例 5/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) \leftarrow S(d) + S(e) \cdot \frac{\partial e}{\partial d} = 0 + 1 \cdot 5 = 5\)</span></li>
+<li><span class="math">\(d \leftarrow e\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-611-トップダウン型" class="slide level1">
+<h1>例 6/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) = 5\)</span><br /> <span class="math">\(S(c) \leftarrow S(c) + S(e) \cdot \frac{\partial e}{\partial c} = 0 + 1 \cdot 8 = 8\)</span></li>
+<li><span class="math">\(c \leftarrow e\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-711-トップダウン型" class="slide level1">
+<h1>例 7/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) = 5\)</span><br /> <span class="math">\(S(c) = 8\)</span><br /> <span class="math">\(S(b) \leftarrow S(b) + S(d) \cdot \frac{\partial d}{\partial b} = 0 + 5 \cdot 2 = 10\)</span></li>
+<li><span class="math">\(b \leftarrow d\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-811-トップダウン型" class="slide level1">
+<h1>例 8/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) = 5\)</span><br /> <span class="math">\(S(c) = 8\)</span><br /> <span class="math">\(S(b) = 10\)</span><br /> <span class="math">\(S(x) \leftarrow S(x) + S(d) \cdot \frac{\partial d}{\partial x} = 0 + 5 \cdot 4 = 20\)</span></li>
+<li><span class="math">\(x \leftarrow d\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-911-トップダウン型" class="slide level1">
+<h1>例 9/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) = 5\)</span><br /> <span class="math">\(S(c) = 8\)</span><br /> <span class="math">\(S(b) = 10\)</span><br /> <span class="math">\(S(x) = 20\)</span><br /> <span class="math">\(S(x) \leftarrow S(x) + S(c) \cdot \frac{\partial c}{\partial x} = 20 + 8 \cdot 1 = 28\)</span></li>
+<li><span class="math">\(x \leftarrow c\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-1011-トップダウン型" class="slide level1">
+<h1>例 10/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = 1\)</span><br /> <span class="math">\(S(e) = 1\)</span><br /> <span class="math">\(S(d) = 5\)</span><br /> <span class="math">\(S(c) = 8\)</span><br /> <span class="math">\(S(b) = 10\)</span><br /> <span class="math">\(S(x) = 28\)</span><br /> <span class="math">\(S(a) \leftarrow S(a) + S(c) \cdot \frac{\partial c}{\partial a} = 0 + 8 \cdot 1 = 8\)</span></li>
+<li><span class="math">\(a \leftarrow c\)</span> を計算</li>
+</ul>
+</section>
+<section id="例-1111-トップダウン型" class="slide level1">
+<h1>例 11/11 | トップダウン型</h1>
+<ul>
+<li><span class="math">\(y = (x+a) \cdot (b \cdot x)\)</span><br /> <span class="math">\(x = 2, \hspace{1ex} a = 3, \hspace{1ex} b = 4\)</span><br /> <span class="math">\(S(y) = \frac{\partial y}{\partial y} = 1\)</span><br /> <span class="math">\(S(e) = \frac{\partial y}{\partial e} = 1\)</span><br /> <span class="math">\(S(d) = \frac{\partial y}{\partial d} = 5\)</span><br /> <span class="math">\(S(c) = \frac{\partial y}{\partial c} = 8\)</span><br /> <span class="math">\(S(b) = \frac{\partial y}{\partial b} = 10\)</span><br /> <span class="math">\(S(x) = \frac{\partial y}{\partial x} = 28\)</span><br /> <span class="math">\(S(a) = \frac{\partial y}{\partial a} = 8\)</span></li>
+<li>できあがり</li>
+</ul>
+</section>
+<section id="まとめ-トップダウン型" class="slide level1">
+<h1>まとめ | トップダウン型</h1>
+<ul>
+<li>多変数関数の偏導関数がぜんぶ求まる</li>
+<li>入力変数→多, 出力変数→少 というケースで有効
+<ul>
+<li>だいたいこれに当てはまると思う</li>
+</ul></li>
+<li>べんり</li>
+<li>実装はちょっとめんどくさそう</li>
+</ul>
+</section>
+<section id="自動微分ができるcライブラリ" class="slide level1">
+<h1>自動微分ができるC++ライブラリ</h1>
+<ul>
+<li>いろいろある
+<ul>
+<li>ADOL-C</li>
+<li>CppAD</li>
+<li>TensorFlow</li>
+<li>Adept</li>
+</ul></li>
+<li>今回は Adept を紹介</li>
+</ul>
+</section>
+<section id="adept-の紹介" class="slide level1">
+<h1>Adept の紹介</h1>
+<ul>
+<li>http://www.met.rdg.ac.uk/clouds/adept/</li>
+<li>あでぷと<sup>[要出典]</sup></li>
+<li><ruby>自動微分<rt>automatic differentiation</rt></ruby> を求めるライブラリ
+<ul>
+<li>主にトップダウン型自動微分</li>
+</ul></li>
+<li>コードが短い (3000行ぐらい)
+<ul>
+<li>コメントがたくさん書いてある</li>
+</ul></li>
+<li><ruby>式テンプレート<rt>expression template</rt></ruby> を使っている</li>
+<li>OpenMP 版もある</li>
+<li>Boost には入ってない</li>
+</ul>
+</section>
+<section id="式テンプレート" class="slide level1">
+<h1>式テンプレート</h1>
+<ul>
+<li>自動微分用の型 <code>adept::adouble</code></li>
+<li>オーバーロードで<br /> 式を表す型 <code>adept::Expression</code> を返すようにする</li>
+<li>コンパイル時に計算し<br /> 覚えておく必要のある中間変数を最小限にする</li>
+</ul>
+</section>
+<section id="使ってみる" class="slide level1">
+<h1>使ってみる</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &quot;adept/adept.h&quot;</span>
+<span class="dt">int</span> main() {
+  adept::Stack stack;    <span class="co">// 導関数の情報を格納するオブジェクト</span>
+  adept::adouble x = <span class="dv">2</span>;  <span class="co">// 入力変数</span>
+  stack.new_recording(); <span class="co">// アルゴリズムの記録を開始</span>
+  adept::adouble y =
+    ( x + <span class="dv">3</span> ) * ( <span class="dv">4</span> * x ); <span class="co">// アルゴリズムを実行</span>
+  y.set_gradient( <span class="fl">1.</span><span class="dv">0</span> );   <span class="co">// 出力変数の勾配を設定</span>
+  stack.reverse();         <span class="co">// トップダウン型自動微分を実行</span>
+  std::cout &lt;&lt; y.value() &lt;&lt; <span class="st">&quot;,&quot;</span> &lt;&lt; <span class="co">// 出力変数の値</span>
+               x.get_gradient() &lt;&lt; <span class="co">// 導関数の値</span>
+               std::endl;
+}
+<span class="co">// --&gt; 40,28</span></code></pre>
+</section>
+<section id="boost-と組み合わせてみる" class="slide level1">
+<h1>Boost と組み合わせてみる</h1>
+<p>※ 思いついた順</p>
+<ul>
+<li>special_functions</li>
+<li>odeint</li>
+<li>accumulators</li>
+<li>ublas</li>
+</ul>
+</section>
+<section id="adept-x-boost.special_functions" class="slide level1">
+<h1>Adept x Boost.special_functions</h1>
+<ul>
+<li>特殊関数</li>
+<li>C++1z で一部が std に入る</li>
+<li>std では <code>float</code>, <code>double</code>, <code>long double</code> だが<br /> boost では <code>template&lt;class T&gt;</code></li>
+</ul>
+</section>
+<section id="adept-x-boost.special_functions-1" class="slide level1">
+<h1>Adept x Boost.special_functions</h1>
+<ul>
+<li>なんかうまくいかない &gt;&lt;
+<ul>
+<li>関数が足りない <code>ceil</code>, <code>floor</code></li>
+<li>numeric_limits</li>
+<li>ETが邪魔 <code>T( ( cond ) ? z : -z )</code></li>
+</ul></li>
+<li>結局断念 ;;</li>
+</ul>
+</section>
+<section id="adept-x-boost.odeint" class="slide level1">
+<h1>Adept x Boost.odeint</h1>
+<ul>
+<li>微分方程式</li>
+<li><code>Value</code>, <code>Time</code> の型を <code>adept::adouble</code> にするとできる</li>
+<li>テンプレート力高い</li>
+<li>微分仲間ということで あとでもうちょっと遊ぶ</li>
+</ul>
+</section>
+<section id="adept-x-boost.accumulators" class="slide level1">
+<h1>Adept x Boost.accumulators</h1>
+<ul>
+<li>統計処理</li>
+<li><code>sum</code> はできる</li>
+<li><code>median</code>, <code>min</code> はコンパイルエラー</li>
+<li><code>mean</code> は通るがなぜか落ちる &gt;&lt;</li>
+<li>結局断念 ;;</li>
+</ul>
+</section>
+<section id="adept-x-boost.ublas" class="slide level1">
+<h1>Adept x Boost.ublas</h1>
+<ul>
+<li>行列</li>
+<li>できる</li>
+<li>テンプレート力高い</li>
+</ul>
+</section>
+<section id="adept-x-odeint" class="slide level1">
+<h1>Adept x Odeint</h1>
+<ul>
+<li>微分仲間ということで もうちょっと遊ぶ</li>
+<li>物理現象の観測データ(ぽいもの)から<br /> シミュレーションの初期条件を推定してみる</li>
+</ul>
+</section>
+<section id="天体の動き-adept-x-odeint" class="slide level1">
+<h1>天体の動き | Adept x Odeint</h1>
+<ul>
+<li>微分方程式<br /> <span class="math">\(x^\prime = u, u^\prime = -\frac{mx}{(x^2+y^2)^{3/2}}\)</span><br /> <span class="math">\(y^\prime = v, v^\prime = -\frac{my}{(x^2+y^2)^{3/2}}\)</span></li>
+<li>初期条件<br /> 座標 <span class="math">\(x(0) = 3.0, \hspace{1ex} y(0) = 0.0\)</span><br /> 速度 <span class="math">\(u(0) = 0.3, \hspace{1ex} v(0) = 0.2\)</span></li>
+<li>定数<br /> 太陽の質量 <span class="math">\(m = 1.0\)</span></li>
+</ul>
+</section>
+<section id="初期条件-adept-x-odeint" class="slide level1">
+<h1>初期条件 | Adept x Odeint</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">std::vector&lt; <span class="dt">double</span> &gt; init {
+  <span class="co">/*x =*/</span> <span class="fl">3.</span><span class="dv">0</span>, <span class="co">/*y =*/</span> <span class="fl">0.</span><span class="dv">0</span>, <span class="co">// 座標</span>
+  <span class="co">/*u =*/</span> <span class="fl">0.</span><span class="dv">3</span>, <span class="co">/*v =*/</span> <span class="fl">0.</span><span class="dv">2</span>, <span class="co">// 速度</span>
+  <span class="co">/*m =*/</span> <span class="fl">1.</span><span class="dv">0</span>               <span class="co">// 太陽の質量</span>
+};</code></pre>
+</section>
+<section id="微分方程式-adept-x-odeint" class="slide level1">
+<h1>微分方程式 | Adept x Odeint</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt; <span class="kw">class</span> T &gt;
+std::vector&lt; T &gt; simulate( <span class="dt">const</span> std::vector&lt; T &gt; &amp;init ) {
+  <span class="kw">using</span> <span class="kw">namespace</span> boost::numeric;
+  <span class="kw">typedef</span> std::array&lt; T, <span class="dv">4</span> &gt; state_t;
+  state_t x0 { init[ <span class="dv">0</span> ], init[ <span class="dv">1</span> ], init[ <span class="dv">2</span> ], init[ <span class="dv">3</span> ] };
+  T m = init[ <span class="dv">4</span> ];
+  <span class="kw">auto</span> system = [&amp;]( <span class="dt">const</span> state_t &amp;x,
+                     state_t &amp;dxdt, T <span class="co">/*t*/</span> ) { <span class="co">// 微分方程式を書く</span>
+    dxdt[ <span class="dv">0</span> ] = x[ <span class="dv">2</span> ]; <span class="co">// u`</span>
+    dxdt[ <span class="dv">1</span> ] = x[ <span class="dv">3</span> ]; <span class="co">// v`</span>
+    T r2 = x[ <span class="dv">0</span> ] * x[ <span class="dv">0</span> ] + x[ <span class="dv">1</span> ] * x[ <span class="dv">1</span> ];
+    T r3 = pow( r2, <span class="fl">3.</span><span class="dv">0</span> / <span class="fl">2.</span><span class="dv">0</span> ) * m;
+    dxdt[ <span class="dv">2</span> ] = -x[ <span class="dv">0</span> ] / r3; <span class="co">// x`</span>
+    dxdt[ <span class="dv">3</span> ] = -x[ <span class="dv">1</span> ] / r3; <span class="co">// y`</span>
+  };
+  ...</code></pre>
+</section>
+<section id="軌道を求める-adept-x-odeint" class="slide level1">
+<h1>軌道を求める | Adept x Odeint</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt; <span class="kw">class</span> T &gt;
+std::vector&lt; T &gt; simulate( <span class="dt">const</span> std::vector&lt; T &gt; &amp;init ) {
+  ...
+  <span class="kw">auto</span> stepper =
+    odeint::controlled_runge_kutta&lt;
+      odeint::runge_kutta_dopri5&lt; state_t, T &gt; &gt;();
+  std::vector&lt; T &gt; orbit; <span class="co">// 軌道保存用</span>
+  <span class="kw">auto</span> observer = [&amp;]( <span class="dt">const</span> state_t &amp;x, T <span class="co">/*t*/</span> ) {
+    orbit.push_back( x[ <span class="dv">0</span> ] );
+    orbit.push_back( x[ <span class="dv">1</span> ] );
+  };
+  T t0 = <span class="fl">0.</span><span class="dv">0</span>, t1 = <span class="fl">15.</span><span class="dv">0</span>, dt = <span class="fl">0.</span><span class="dv">1</span>;
+  odeint::integrate_const( <span class="co">// 軌道計算する</span>
+    stepper, system, x0, t0, t1, dt, observer );
+  <span class="kw">return</span> orbit;
+}</code></pre>
+</section>
+<section id="軌道を求める-adept-x-odeint-1" class="slide level1">
+<h1>軌道を求める | Adept x Odeint</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  std::vector&lt; <span class="dt">double</span> &gt; init {
+    <span class="co">/*x =*/</span> <span class="fl">3.</span><span class="dv">0</span>, <span class="co">/*y =*/</span> <span class="fl">0.</span><span class="dv">0</span>, <span class="co">// 座標</span>
+    <span class="co">/*u =*/</span> <span class="fl">0.</span><span class="dv">3</span>, <span class="co">/*v =*/</span> <span class="fl">0.</span><span class="dv">2</span>, <span class="co">// 速度</span>
+    <span class="co">/*m =*/</span> <span class="fl">1.</span><span class="dv">0</span>               <span class="co">// 太陽の質量</span>
+  };
+  std::vector&lt; <span class="dt">double</span> &gt; orbit = simulate( init );
+  ...</code></pre>
+</section>
+<section id="軌道を求める-adept-x-odeint-2" class="slide level1">
+<h1>軌道を求める | Adept x Odeint</h1>
+<ul>
+<li>普通に出ている</li>
+</ul>
+<p><img src="resource/ad_ode.sim.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+<ul>
+<li>ここまでは普通の <code>double</code></li>
+</ul>
+</section>
+<section id="観測データっぽく-adept-x-odeint" class="slide level1">
+<h1>観測データっぽく | Adept x Odeint</h1>
+<ul>
+<li>ノイズを入れてみる
+<ul>
+<li>とりあえず正規分布</li>
+</ul></li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
+  std::vector&lt; <span class="dt">double</span> &gt; observed = orbit;
+  std::mt19937 gen( <span class="dv">0</span> );
+  std::normal_distribution&lt;&gt; d( <span class="dv">0</span>, <span class="fl">0.</span><span class="bn">05</span> );
+  <span class="kw">for</span> ( <span class="dt">double</span> &amp;x : observed ) {
+    x += d( gen );
+  }
+  ...</code></pre>
+</section>
+<section id="観測データっぽく-adept-x-odeint-1" class="slide level1">
+<h1>観測データっぽく | Adept x Odeint</h1>
+<ul>
+<li>乱れている</li>
+</ul>
+<p><img src="resource/ad_ode.obs.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+<ul>
+<li>これを観測データとする</li>
+<li>以降では元の軌道は知らないことにする</li>
+</ul>
+</section>
+<section id="テキトーな初期条件-adept-x-odeint" class="slide level1">
+<h1>テキトーな初期条件 | Adept x Odeint</h1>
+<ul>
+<li>初期条件の 位置, 速度, 太陽の質量 を推定してみる</li>
+<li>目分量でテキトーな初期条件を入れる</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
+  std::vector&lt; <span class="dt">double</span> &gt; init {
+    <span class="co">/*x =*/</span> observed[<span class="dv">0</span>], <span class="co">/*y =*/</span> observed[<span class="dv">1</span>],
+    <span class="co">/*u =*/</span> <span class="fl">0.</span><span class="dv">4</span>, <span class="co">/*v =*/</span> <span class="fl">0.</span><span class="dv">3</span>,
+    <span class="co">/*m =*/</span> <span class="fl">0.</span><span class="dv">8</span>
+  };
+  ...</code></pre>
+</section>
+<section id="テキトーな初期条件-adept-x-odeint-1" class="slide level1">
+<h1>テキトーな初期条件 | Adept x Odeint</h1>
+<ul>
+<li>テキトーなのでずれている</li>
+</ul>
+<p><img src="resource/ad_ode.res0.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+</section>
+<section id="誤差-adept-x-odeint" class="slide level1">
+<h1>誤差 | Adept x Odeint</h1>
+<ul>
+<li>とりあえず二乗平均</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt; <span class="kw">class</span> T &gt;
+T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
+         <span class="dt">const</span> std::vector&lt; <span class="dt">double</span> &gt; &amp;observed ) {
+  size_t n = orbit.size();
+  T sum_sqr = <span class="fl">0.</span><span class="dv">0</span>;
+  <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; n; ++i ) {
+    T dv = orbit[ i ] - observed[ i ];
+    sum_sqr += dv * dv;
+  }
+  <span class="kw">return</span> sum_sqr / n;
+}</code></pre>
+</section>
+<section id="初期条件で微分-adept-x-odeint" class="slide level1">
+<h1>初期条件で微分 | Adept x Odeint</h1>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
+  size_t dim = init.size();
+  adept::Stack stack;
+  std::vector&lt; adept::adouble &gt; init_( dim ); <span class="co">// 入力変数</span>
+  <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; dim; ++i )
+    init_[ i ] = init[ i ];
+  stack.new_recording();    <span class="co">// アルゴリズムの記録を開始</span>
+  std::vector&lt; adept::adouble &gt; orbit_ = simulate( init_ );
+  adept::adouble err_ = error( orbit_, observed ); <span class="co">// 誤差値</span>
+  err_.set_gradient( <span class="fl">1.</span><span class="dv">0</span> ); <span class="co">// 出力変数(誤差値)の勾配を設定</span>
+  stack.reverse();          <span class="co">// トップダウン型自動微分を実行</span>
+  std::vector&lt; <span class="dt">double</span> &gt; grad( dim );
+  <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; dim; ++i  )
+    grad[ i ] = init_[ i ].get_gradient(); <span class="co">// 偏導関数の値</span>
+  ...</code></pre>
+</section>
+<section id="初期条件を変化-adept-x-odeint" class="slide level1">
+<h1>初期条件を変化 | Adept x Odeint</h1>
+<ul>
+<li>偏導関数の値にしたがって<br /> 誤差が小さくなる方へ初期条件を変化させる</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
+  adam( grad, init );
+  ...</code></pre>
+</section>
+<section id="adam法-adept-x-odeint" class="slide level1">
+<h1>Adam法 | Adept x Odeint</h1>
+<ul>
+<li>偏導関数の値をいい感じに調節してくれる</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">struct</span> adam {
+  ...
+  <span class="dt">void</span> <span class="kw">operator</span>()( <span class="dt">const</span> std::vector&lt; <span class="dt">double</span> &gt; &amp;dx,
+                   std::vector&lt; <span class="dt">double</span> &gt; &amp;x ) {
+    <span class="dt">double</span> t = <span class="kw">static_cast</span>&lt;<span class="dt">double</span>&gt;( ++k );
+    <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; dim; ++i ) {
+      m1[ i ] = beta1 * m1[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - beta1 ) * dx[ i ];
+      m2[ i ] = beta2 * m2[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - beta2 ) * dx[ i ] * dx[ i ];
+      <span class="dt">double</span> c1 = m1[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( beta1, t ) );
+      <span class="dt">double</span> c2 = m2[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( beta2, t ) );
+      x[ i ] -= alpha * c1 / ( sqrt( c2 ) + epsilon );
+    }
+  }
+}</code></pre>
+</section>
+<section id="初期条件を変化-adept-x-odeint-1" class="slide level1">
+<h1>初期条件を変化 | Adept x Odeint</h1>
+<ul>
+<li>10000回やった結果</li>
+</ul>
+<p><img src="resource/ad_ode.res.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+<ul>
+<li>いい感じな気がする</li>
+</ul>
+</section>
+<section id="元の軌道と比較-adept-x-odeint" class="slide level1">
+<h1>元の軌道と比較 | Adept x Odeint</h1>
+<ul>
+<li>こっそり元の軌道を覗く</li>
+</ul>
+<p><img src="resource/ad_ode.res.cmp.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+<ul>
+<li>あっている</li>
+<li>よかった</li>
+</ul>
+</section>
+<section id="誤差の推移-adept-x-odeint" class="slide level1">
+<h1>誤差の推移 | Adept x Odeint</h1>
+<ul>
+<li>5000回ぐらいで既にそこそこ収束してるっぽい</li>
+</ul>
+<p><img src="resource/ad_ode.err.png" style="display: block; margin: 0 auto;" height="380px" /></p>
+</section>
+<section id="感想" class="slide level1">
+<h1>感想</h1>
+<ul>
+<li>自動微分はべんり</li>
+<li>組み合わせるとそれぞれ地雷がある</li>
+<li>もうちょっと図示しやすい例にすればよかった</li>
+</ul>
+</section>
+<section id="参考文献" class="slide level1">
+<h1>参考文献</h1>
+<ul>
+<li>Robin J. Hogan. 2014. &quot;Fast Reverse-Mode Automatic Differentiation using Expression Templates in C++&quot;. ACM Transactions on Mathematical Software, Vol. 40, No. 4, Article 26.</li>
+<li>久保田光一, 伊理正夫. 1998. &quot;アルゴリズムの自動微分と応用&quot;. コロナ社.</li>
+<li>επιστημη, 高橋 晶. 2014. &quot;C++テンプレートテクニック 第2版&quot;. SBクリエイティブ.</li>
+<li>Diederik P. Kingma, Jimmy Lei Ba. 2015. &quot;Adam: A Method for Stochastic Optimization&quot;. 3rd International Conference for Learning Representations.</li>
+</ul>
+</section>
+<section id="q-and-a" class="slide level1">
+<h1>Q and A</h1>
+<ul>
+<li>お手柔らかにお願いします &gt;&lt;</li>
+</ul>
+</section>
+<!-- {{{{ dzslides core
+#
+#
+#     __  __  __       .  __   ___  __
+#    |  \  / /__` |    | |  \ |__  /__`
+#    |__/ /_ .__/ |___ | |__/ |___ .__/ core :€
+#
+#
+# The following block of code is not supposed to be edited.
+# But if you want to change the behavior of these slides,
+# feel free to hack it!
+#
+-->
+
+<div id="progress-bar"></div>
+
+<!-- Default Style -->
+<style>
+  * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  details { display: none; }
+  body {
+    width: 800px; height: 600px;
+    margin-left: -400px; margin-top: -300px;
+    position: absolute; top: 50%; left: 50%;
+    overflow: hidden;
+  }
+  section {
+    position: absolute;
+    pointer-events: none;
+    width: 100%; height: 100%;
+  }
+  section[aria-selected] { pointer-events: auto; }
+  html { overflow: hidden; }
+  body { display: none; }
+  body.loaded { display: block; }
+  .incremental {visibility: hidden; }
+  .incremental[active] {visibility: visible; }
+  #progress-bar{
+    bottom: 0;
+    position: absolute;
+    -moz-transition: width 400ms linear 0s;
+    -webkit-transition: width 400ms linear 0s;
+    -ms-transition: width 400ms linear 0s;
+    transition: width 400ms linear 0s;
+  }
+  figure {
+    width: 100%;
+    height: 100%;
+  }
+  figure > * {
+    position: absolute;
+  }
+  figure > img, figure > video {
+    width: 100%; height: 100%;
+  }
+</style>
+
+<script>
+  var Dz = {
+    remoteWindows: [],
+    idx: -1,
+    step: 0,
+    slides: null,
+    progressBar : null,
+    params: {
+      autoplay: "1"
+    }
+  };
+
+  Dz.init = function() {
+    document.body.className = "loaded";
+    this.slides = $$("body > section");
+    this.progressBar = $("#progress-bar");
+    this.setupParams();
+    this.onhashchange();
+    this.setupTouchEvents();
+    this.onresize();
+  }
+  
+  Dz.setupParams = function() {
+    var p = window.location.search.substr(1).split('&');
+    p.forEach(function(e, i, a) {
+      var keyVal = e.split('=');
+      Dz.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
+    });
+  // Specific params handling
+    if (!+this.params.autoplay)
+      $$.forEach($$("video"), function(v){ v.controls = true });
+  }
+
+  Dz.onkeydown = function(aEvent) {
+    // Don't intercept keyboard shortcuts
+    if (aEvent.altKey
+      || aEvent.ctrlKey
+      || aEvent.metaKey
+      || aEvent.shiftKey) {
+      return;
+    }
+    if ( aEvent.keyCode == 37 // left arrow
+      || aEvent.keyCode == 38 // up arrow
+      || aEvent.keyCode == 33 // page up
+    ) {
+      aEvent.preventDefault();
+      this.back();
+    }
+    if ( aEvent.keyCode == 39 // right arrow
+      || aEvent.keyCode == 40 // down arrow
+      || aEvent.keyCode == 34 // page down
+    ) {
+      aEvent.preventDefault();
+      this.forward();
+    }
+    if (aEvent.keyCode == 35) { // end
+      aEvent.preventDefault();
+      this.goEnd();
+    }
+    if (aEvent.keyCode == 36) { // home
+      aEvent.preventDefault();
+      this.goStart();
+    }
+    if (aEvent.keyCode == 32) { // space
+      aEvent.preventDefault();
+      this.toggleContent();
+    }
+    if (aEvent.keyCode == 70) { // f
+      aEvent.preventDefault();
+      this.goFullscreen();
+    }
+  }
+
+  /* Touch Events */
+
+  Dz.setupTouchEvents = function() {
+    var orgX, newX;
+    var tracking = false;
+
+    var db = document.body;
+    db.addEventListener("touchstart", start.bind(this), false);
+    db.addEventListener("touchmove", move.bind(this), false);
+
+    function start(aEvent) {
+      aEvent.preventDefault();
+      tracking = true;
+      orgX = aEvent.changedTouches[0].pageX;
+    }
+
+    function move(aEvent) {
+      if (!tracking) return;
+      newX = aEvent.changedTouches[0].pageX;
+      if (orgX - newX > 100) {
+        tracking = false;
+        this.forward();
+      } else {
+        if (orgX - newX < -100) {
+          tracking = false;
+          this.back();
+        }
+      }
+    }
+  }
+
+  /* Adapt the size of the slides to the window */
+
+  Dz.onresize = function() {
+    var db = document.body;
+    var sx = db.clientWidth / window.innerWidth;
+    var sy = db.clientHeight / window.innerHeight;
+    var transform = "scale(" + (1/Math.max(sx, sy)) + ")";
+
+    db.style.MozTransform = transform;
+    db.style.WebkitTransform = transform;
+    db.style.OTransform = transform;
+    db.style.msTransform = transform;
+    db.style.transform = transform;
+  }
+
+
+  Dz.getDetails = function(aIdx) {
+    var s = $("section:nth-of-type(" + aIdx + ")");
+    var d = s.$("details");
+    return d ? d.innerHTML : "";
+  }
+
+  Dz.onmessage = function(aEvent) {
+    var argv = aEvent.data.split(" "), argc = argv.length;
+    argv.forEach(function(e, i, a) { a[i] = decodeURIComponent(e) });
+    var win = aEvent.source;
+    if (argv[0] === "REGISTER" && argc === 1) {
+      this.remoteWindows.push(win);
+      this.postMsg(win, "REGISTERED", document.title, this.slides.length);
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+      return;
+    }
+    if (argv[0] === "BACK" && argc === 1)
+      this.back();
+    if (argv[0] === "FORWARD" && argc === 1)
+      this.forward();
+    if (argv[0] === "START" && argc === 1)
+      this.goStart();
+    if (argv[0] === "END" && argc === 1)
+      this.goEnd();
+    if (argv[0] === "TOGGLE_CONTENT" && argc === 1)
+      this.toggleContent();
+    if (argv[0] === "SET_CURSOR" && argc === 2)
+      window.location.hash = "#" + argv[1];
+    if (argv[0] === "GET_CURSOR" && argc === 1)
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+    if (argv[0] === "GET_NOTES" && argc === 1)
+      this.postMsg(win, "NOTES", this.getDetails(this.idx));
+  }
+
+  Dz.toggleContent = function() {
+    // If a Video is present in this new slide, play it.
+    // If a Video is present in the previous slide, stop it.
+    var s = $("section[aria-selected]");
+    if (s) {
+      var video = s.$("video");
+      if (video) {
+        if (video.ended || video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+    }
+  }
+
+  Dz.setCursor = function(aIdx, aStep) {
+    // If the user change the slide number in the URL bar, jump
+    // to this slide.
+    aStep = (aStep != 0 && typeof aStep !== "undefined") ? "." + aStep : ".0";
+    window.location.hash = "#" + aIdx + aStep;
+  }
+
+  Dz.onhashchange = function() {
+    var cursor = window.location.hash.split("#"),
+        newidx = 1,
+        newstep = 0;
+    if (cursor.length == 2) {
+      newidx = ~~cursor[1].split(".")[0];
+      newstep = ~~cursor[1].split(".")[1];
+      if (newstep > Dz.slides[newidx - 1].$$('.incremental > *').length) {
+        newstep = 0;
+        newidx++;
+      }
+    }
+    this.setProgress(newidx, newstep);
+    if (newidx != this.idx) {
+      this.setSlide(newidx);
+    }
+    if (newstep != this.step) {
+      this.setIncremental(newstep);
+    }
+    for (var i = 0; i < this.remoteWindows.length; i++) {
+      this.postMsg(this.remoteWindows[i], "CURSOR", this.idx + "." + this.step);
+    }
+  }
+
+  Dz.back = function() {
+    if (this.idx == 1 && this.step == 0) {
+      return;
+    }
+    if (this.step == 0) {
+      this.setCursor(this.idx - 1,
+                     this.slides[this.idx - 2].$$('.incremental > *').length);
+    } else {
+      this.setCursor(this.idx, this.step - 1);
+    }
+  }
+
+  Dz.forward = function() {
+    if (this.idx >= this.slides.length &&
+        this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+        return;
+    }
+    if (this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+      this.setCursor(this.idx + 1, 0);
+    } else {
+      this.setCursor(this.idx, this.step + 1);
+    }
+  }
+
+  Dz.goStart = function() {
+    this.setCursor(1, 0);
+  }
+
+  Dz.goEnd = function() {
+    var lastIdx = this.slides.length;
+    var lastStep = this.slides[lastIdx - 1].$$('.incremental > *').length;
+    this.setCursor(lastIdx, lastStep);
+  }
+
+  Dz.setSlide = function(aIdx) {
+    this.idx = aIdx;
+    var old = $("section[aria-selected]");
+    var next = $("section:nth-of-type("+ this.idx +")");
+    if (old) {
+      old.removeAttribute("aria-selected");
+      var video = old.$("video");
+      if (video) {
+        video.pause();
+      }
+    }
+    if (next) {
+      next.setAttribute("aria-selected", "true");
+      var video = next.$("video");
+      if (video && !!+this.params.autoplay) {
+        video.play();
+      }
+    } else {
+      // That should not happen
+      this.idx = -1;
+      // console.warn("Slide doesn't exist.");
+    }
+  }
+
+  Dz.setIncremental = function(aStep) {
+    this.step = aStep;
+    var old = this.slides[this.idx - 1].$('.incremental > *[aria-selected]');
+    if (old) {
+      old.removeAttribute('aria-selected');
+    }
+    var incrementals = $$('.incremental');
+    if (this.step <= 0) {
+      $$.forEach(incrementals, function(aNode) {
+        aNode.removeAttribute('active');
+      });
+      return;
+    }
+    var next = this.slides[this.idx - 1].$$('.incremental > *')[this.step - 1];
+    if (next) {
+      next.setAttribute('aria-selected', true);
+      next.parentNode.setAttribute('active', true);
+      var found = false;
+      $$.forEach(incrementals, function(aNode) {
+        if (aNode != next.parentNode)
+          if (found)
+            aNode.removeAttribute('active');
+          else
+            aNode.setAttribute('active', true);
+        else
+          found = true;
+      });
+    } else {
+      setCursor(this.idx, 0);
+    }
+    return next;
+  }
+
+  Dz.goFullscreen = function() {
+    var html = $('html'),
+        requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+    if (requestFullscreen) {
+      requestFullscreen.apply(html);
+    }
+  }
+  
+  Dz.setProgress = function(aIdx, aStep) {
+    var slide = $("section:nth-of-type("+ aIdx +")");
+    if (!slide)
+      return;
+    var steps = slide.$$('.incremental > *').length + 1,
+        slideSize = 100 / (this.slides.length - 1),
+        stepSize = slideSize / steps;
+    this.progressBar.style.width = ((aIdx - 1) * slideSize + aStep * stepSize) + '%';
+  }
+  
+  Dz.postMsg = function(aWin, aMsg) { // [arg0, [arg1...]]
+    aMsg = [aMsg];
+    for (var i = 2; i < arguments.length; i++)
+      aMsg.push(encodeURIComponent(arguments[i]));
+    aWin.postMessage(aMsg.join(" "), "*");
+  }
+  
+  function init() {
+    Dz.init();
+    window.onkeydown = Dz.onkeydown.bind(Dz);
+    window.onresize = Dz.onresize.bind(Dz);
+    window.onhashchange = Dz.onhashchange.bind(Dz);
+    window.onmessage = Dz.onmessage.bind(Dz);
+  }
+
+  window.onload = init;
+</script>
+
+
+<script> // Helpers
+  if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+
+      // closest thing possible to the ECMAScript 5 internal IsCallable
+      // function 
+      if (typeof this !== "function")
+      throw new TypeError(
+        "Function.prototype.bind - what is trying to be fBound is not callable"
+      );
+
+      var aArgs = Array.prototype.slice.call(arguments, 1),
+          fToBind = this,
+          fNOP = function () {},
+          fBound = function () {
+            return fToBind.apply( this instanceof fNOP ? this : oThis || window,
+                   aArgs.concat(Array.prototype.slice.call(arguments)));
+          };
+
+      fNOP.prototype = this.prototype;
+      fBound.prototype = new fNOP();
+
+      return fBound;
+    };
+  }
+
+  var $ = (HTMLElement.prototype.$ = function(aQuery) {
+    return this.querySelector(aQuery);
+  }).bind(document);
+
+  var $$ = (HTMLElement.prototype.$$ = function(aQuery) {
+    return this.querySelectorAll(aQuery);
+  }).bind(document);
+
+  $$.forEach = function(nodeList, fun) {
+    Array.prototype.forEach.call(nodeList, fun);
+  }
+
+</script>
+<!-- vim: set fdm=marker: }}} -->
+</body>
+</html>
