@@ -784,9 +784,9 @@ std::vector< T > simulate( const std::vector< T > &init ) {
     dxdt[ 0 ] = x[ 2 ]; // u`
     dxdt[ 1 ] = x[ 3 ]; // v`
     T r2 = x[ 0 ] * x[ 0 ] + x[ 1 ] * x[ 1 ];
-    T r3 = pow( r2, 3.0 / 2.0 ) * m;
-    dxdt[ 2 ] = -x[ 0 ] / r3; // x`
-    dxdt[ 3 ] = -x[ 1 ] / r3; // y`
+    T r3 = pow( r2, 3.0 / 2.0 );
+    dxdt[ 2 ] = -m * x[ 0 ] / r3; // x`
+    dxdt[ 3 ] = -m * x[ 1 ] / r3; // y`
   };
   ...
 ```
@@ -874,7 +874,7 @@ int main() {
   std::vector< double > init {
     /*x =*/ observed[0], /*y =*/ observed[1],
     /*u =*/ 0.4, /*v =*/ 0.3,
-    /*m =*/ 0.8
+    /*m =*/ 1.3
   };
   ...
 ```

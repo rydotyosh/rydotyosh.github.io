@@ -869,9 +869,9 @@ std::vector&lt; T &gt; simulate( <span class="dt">const</span> std::vector&lt; T
     dxdt[ <span class="dv">0</span> ] = x[ <span class="dv">2</span> ]; <span class="co">// u`</span>
     dxdt[ <span class="dv">1</span> ] = x[ <span class="dv">3</span> ]; <span class="co">// v`</span>
     T r2 = x[ <span class="dv">0</span> ] * x[ <span class="dv">0</span> ] + x[ <span class="dv">1</span> ] * x[ <span class="dv">1</span> ];
-    T r3 = pow( r2, <span class="fl">3.</span><span class="dv">0</span> / <span class="fl">2.</span><span class="dv">0</span> ) * m;
-    dxdt[ <span class="dv">2</span> ] = -x[ <span class="dv">0</span> ] / r3; <span class="co">// x`</span>
-    dxdt[ <span class="dv">3</span> ] = -x[ <span class="dv">1</span> ] / r3; <span class="co">// y`</span>
+    T r3 = pow( r2, <span class="fl">3.</span><span class="dv">0</span> / <span class="fl">2.</span><span class="dv">0</span> );
+    dxdt[ <span class="dv">2</span> ] = -m * x[ <span class="dv">0</span> ] / r3; <span class="co">// x`</span>
+    dxdt[ <span class="dv">3</span> ] = -m * x[ <span class="dv">1</span> ] / r3; <span class="co">// y`</span>
   };
   ...</code></pre>
 </section>
@@ -953,7 +953,7 @@ std::vector&lt; T &gt; simulate( <span class="dt">const</span> std::vector&lt; T
   std::vector&lt; <span class="dt">double</span> &gt; init {
     <span class="co">/*x =*/</span> observed[<span class="dv">0</span>], <span class="co">/*y =*/</span> observed[<span class="dv">1</span>],
     <span class="co">/*u =*/</span> <span class="fl">0.</span><span class="dv">4</span>, <span class="co">/*v =*/</span> <span class="fl">0.</span><span class="dv">3</span>,
-    <span class="co">/*m =*/</span> <span class="fl">0.</span><span class="dv">8</span>
+    <span class="co">/*m =*/</span> <span class="fl">1.</span><span class="dv">3</span>
   };
   ...</code></pre>
 </section>
