@@ -985,10 +985,10 @@ T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
 <h1>初期条件で微分 | Adept x Odeint</h1>
 <pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
   size_t dim = init.size();
+  ...
   adept::Stack stack;
   std::vector&lt; adept::adouble &gt; init_( dim ); <span class="co">// 入力変数</span>
-  <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; dim; ++i )
-    init_[ i ] = init[ i ];
+  boost::copy( init, init_.begin() );
   stack.new_recording();    <span class="co">// アルゴリズムの記録を開始</span>
   std::vector&lt; adept::adouble &gt; orbit_ = simulate( init_ );
   adept::adouble err_ = error( orbit_, observed ); <span class="co">// 誤差値</span>
@@ -1005,6 +1005,8 @@ T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
 <li>偏導関数の値にしたがって<br /> 誤差が小さくなる方へ初期条件を変化させる</li>
 </ul>
 <pre class="sourceCode cpp"><code class="sourceCode cpp">  ...
+  adam adam( dim );
+  ...
   adam( grad, init );
   ...</code></pre>
 </section>
@@ -1017,15 +1019,29 @@ T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
   ...
   <span class="dt">void</span> <span class="kw">operator</span>()( <span class="dt">const</span> std::vector&lt; <span class="dt">double</span> &gt; &amp;dx,
                    std::vector&lt; <span class="dt">double</span> &gt; &amp;x ) {
-    <span class="dt">double</span> t = <span class="kw">static_cast</span>&lt;<span class="dt">double</span>&gt;( ++k );
+    <span class="dt">double</span> t = <span class="kw">static_cast</span>&lt; <span class="dt">double</span> &gt;( ++k );
     <span class="kw">for</span> ( size_t i = <span class="dv">0</span>; i &lt; dim; ++i ) {
-      m1[ i ] = beta1 * m1[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - beta1 ) * dx[ i ];
-      m2[ i ] = beta2 * m2[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - beta2 ) * dx[ i ] * dx[ i ];
-      <span class="dt">double</span> c1 = m1[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( beta1, t ) );
-      <span class="dt">double</span> c2 = m2[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( beta2, t ) );
-      x[ i ] -= alpha * c1 / ( sqrt( c2 ) + epsilon );
+      m1[ i ] = b1 * m1[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - b1 ) * dx[ i ];
+      m2[ i ] = b2 * m2[ i ] + ( <span class="fl">1.</span><span class="dv">0</span> - b2 ) * dx[ i ] * dx[ i ];
+      <span class="dt">double</span> c1 = m1[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( b1, t ) );
+      <span class="dt">double</span> c2 = m2[ i ] / ( <span class="fl">1.</span><span class="dv">0</span> - pow( b2, t ) );
+      x[ i ] -= a * c1 / ( sqrt( c2 ) + e );
     }
   }
+};</code></pre>
+</section>
+<section id="adam法-adept-x-odeint-1" class="slide level1">
+<h1>Adam法 | Adept x Odeint</h1>
+<ul>
+<li>初期値とか</li>
+</ul>
+<pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">struct</span> adam {
+  size_t dim, k;
+  <span class="dt">double</span> a = <span class="fl">0.</span><span class="bn">001</span>, b1 = <span class="fl">0.</span><span class="dv">9</span>, b2 = <span class="fl">0.</span><span class="dv">999</span>, e = <span class="fl">1e-8</span>;
+  std::vector&lt; <span class="dt">double</span> &gt; m1, m2;
+  adam( size_t dim ) : dim( dim ), k( <span class="dv">0</span> ),
+    m1( dim ), m2( dim ) {}
+  ...
 }</code></pre>
 </section>
 <section id="初期条件を変化-adept-x-odeint-1" class="slide level1">
@@ -1062,6 +1078,7 @@ T error( <span class="dt">const</span> std::vector&lt; T &gt; &amp;orbit,
 <li>微分はシステマティックでかっこいい</li>
 <li>ライブラリを組み合わせるとそれぞれ地雷がある</li>
 <li>もうちょっと図示しやすい例にすればよかった</li>
+<li><span class="math">\(\tex\)</span>に色つけるのめんどくさい</li>
 </ul>
 </section>
 <section id="参考文献" class="slide level1">

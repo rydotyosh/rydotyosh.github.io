@@ -911,10 +911,10 @@ T error( const std::vector< T > &orbit,
 ```cpp
   ...
   size_t dim = init.size();
+  ...
   adept::Stack stack;
   std::vector< adept::adouble > init_( dim ); // 入力変数
-  for ( size_t i = 0; i < dim; ++i )
-    init_[ i ] = init[ i ];
+  boost::copy( init, init_.begin() );
   stack.new_recording();    // アルゴリズムの記録を開始
   std::vector< adept::adouble > orbit_ = simulate( init_ );
   adept::adouble err_ = error( orbit_, observed ); // 誤差値
@@ -934,6 +934,8 @@ T error( const std::vector< T > &orbit,
 
 ```cpp
   ...
+  adam adam( dim );
+  ...
   adam( grad, init );
   ...
 ```
@@ -947,15 +949,30 @@ struct adam {
   ...
   void operator()( const std::vector< double > &dx,
                    std::vector< double > &x ) {
-    double t = static_cast<double>( ++k );
+    double t = static_cast< double >( ++k );
     for ( size_t i = 0; i < dim; ++i ) {
-      m1[ i ] = beta1 * m1[ i ] + ( 1.0 - beta1 ) * dx[ i ];
-      m2[ i ] = beta2 * m2[ i ] + ( 1.0 - beta2 ) * dx[ i ] * dx[ i ];
-      double c1 = m1[ i ] / ( 1.0 - pow( beta1, t ) );
-      double c2 = m2[ i ] / ( 1.0 - pow( beta2, t ) );
-      x[ i ] -= alpha * c1 / ( sqrt( c2 ) + epsilon );
+      m1[ i ] = b1 * m1[ i ] + ( 1.0 - b1 ) * dx[ i ];
+      m2[ i ] = b2 * m2[ i ] + ( 1.0 - b2 ) * dx[ i ] * dx[ i ];
+      double c1 = m1[ i ] / ( 1.0 - pow( b1, t ) );
+      double c2 = m2[ i ] / ( 1.0 - pow( b2, t ) );
+      x[ i ] -= a * c1 / ( sqrt( c2 ) + e );
     }
   }
+};
+```
+
+# Adam法 | Adept x Odeint
+
+- 初期値とか
+
+```cpp
+struct adam {
+  size_t dim, k;
+  double a = 0.001, b1 = 0.9, b2 = 0.999, e = 1e-8;
+  std::vector< double > m1, m2;
+  adam( size_t dim ) : dim( dim ), k( 0 ),
+    m1( dim ), m2( dim ) {}
+  ...
 }
 ```
 
@@ -990,6 +1007,7 @@ struct adam {
 - 微分はシステマティックでかっこいい
 - ライブラリを組み合わせるとそれぞれ地雷がある
 - もうちょっと図示しやすい例にすればよかった
+- $\tex$に色つけるのめんどくさい
 
 
 # 参考文献
